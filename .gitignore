@@ -1,0 +1,49 @@
+# IDE specific files
+# JetBrains CLion
+.idea/
+cmake-build-*/
+
+# Visual Studio Code
+.vscode/
+
+# Visual Studio
+*.sln
+*.suo
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.ncb
+*.opensdf
+*.sdf
+[Bb]in/
+[Dd]ebug/
+[Rr]elease/
+x64/
+[Aa]rm64/
+ipch/
+.vs/
+
+# CMake build files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+CTestTestfile.cmake
+
+# General build artifacts
+build/
+build-*/
+*.o
+*.a
+*.so
+*.dll
+*.exe
+*.out
+*.lib
+*.pdb
+*.ilk
+
+# macOS specific
+.DS_Store
+
