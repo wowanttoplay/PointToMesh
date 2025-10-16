@@ -4,10 +4,7 @@
   "version-string": "0.1.0",
   "dependencies": [
     "cgal",
-    {
-      "name": "qt",
-      "features": ["widgets"]
-    }
+    "qt"
   ]
 }
 
