@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # ANSI Color Codes
-GREEN='\\033[0;32m'
-RED='\\033[0;31m'
-YELLOW='\\033[1;33m'
-NC='\\033[0m' # No Color
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
 
 echo "--- Dependency Checker ---"
 echo "Checking for required tools..."
@@ -73,4 +73,3 @@ fi
 echo ""
 echo "--- Check Complete ---"
 echo "Please review the messages above and install any missing tools."
-

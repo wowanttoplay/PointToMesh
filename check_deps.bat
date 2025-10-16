@@ -4,25 +4,14 @@ echo Checking for required tools...
 
 setlocal
 
-:: Function to check if a command exists
-where /q %1
-if %errorlevel% equ 0 (
-    echo %1... OK
-) else (
-    echo %1... NOT FOUND
-    if "%1"=="git" echo   Please install Git. Visit https://git-scm.com/downloads
-    if "%1"=="cmake" echo   Please install CMake. Visit https://cmake.org/download/
-    if "%1"=="cl" echo   MSVC C++ compiler not found. Please install Visual Studio with C++ workload.
-)
-
 :: 1. Check for Git
-call :check_command git
+call :check_command git "Please install Git. Visit https://git-scm.com/downloads"
 
 :: 2. Check for CMake
-call :check_command cmake
+call :check_command cmake "Please install CMake. Visit https://cmake.org/download/"
 
 :: 3. Check for a C++ compiler (MSVC)
-where /q cl
+where /q cl >nul 2>nul
 if %errorlevel% equ 0 (
     echo cl... OK
 ) else (
@@ -53,11 +42,11 @@ echo Please review the messages above and install any missing tools.
 goto :eof
 
 :check_command
-where /q %1 >nul 2>nul
+where /q %~1 >nul 2>nul
 if %errorlevel% equ 0 (
-    echo %1... OK
+    echo %~1... OK
 ) else (
-    echo %1... NOT FOUND
+    echo %~1... NOT FOUND
+    echo   %~2
 )
 goto :eof
-
