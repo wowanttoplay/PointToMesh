@@ -26,13 +26,13 @@ echo This project uses vcpkg for dependencies.
 :: 4. Check for vcpkg
 if defined VCPKG_ROOT (
     if exist "%VCPKG_ROOT%\\vcpkg.exe" (
-        echo vcpkg... OK (Found in VCPKG_ROOT)
+        echo vcpkg... OK (Found in VCPKG_ROOT^)
     ) else (
         echo vcpkg... NOT FOUND in VCPKG_ROOT
         echo   Please install vcpkg from https://vcpkg.io and set the VCPKG_ROOT environment variable.
     )
 ) else (
-    echo vcpkg... NOT FOUND (VCPKG_ROOT is not set)
+    echo vcpkg... NOT FOUND (VCPKG_ROOT is not set^)
     echo   Please install vcpkg from https://vcpkg.io and set the VCPKG_ROOT environment variable.
 )
 
