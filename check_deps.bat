@@ -39,6 +39,7 @@ if defined VCPKG_ROOT (
 echo.
 echo --- Check Complete ---
 echo Please review the messages above and install any missing tools.
+pause
 goto :eof
 
 :check_command
