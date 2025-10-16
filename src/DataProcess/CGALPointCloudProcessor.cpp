@@ -4,7 +4,9 @@
 
 // CGAL I/O
 #include <CGAL/IO/read_points.h>
-// #include <CGAL/IO/write_surface_mesh.h>
+#include <CGAL/IO/polygon_mesh_io.h>
+#include <CGAL/poisson_surface_reconstruction.h>
+#include <CGAL/property_map.h>
 
 // Normal Estimation
 #include <CGAL/jet_estimate_normals.h>
@@ -21,14 +23,10 @@ bool CGALPointCloudProcessor::loadPointCloud(const std::string &filePath) {
     m_pointCloud.clear();
     m_mesh.clear();
 
-    std::ifstream stream(filePath);
-    if (!stream) {
-        std::cerr << "Error: Cannot open file " << filePath << std::endl;
-        return false;
-    }
-
     // Read points and normals. CGAL::read_points can handle files with 3 (points) or 6 (points+normals) columns.
-    if (!CGAL::IO::read_points(stream, std::back_inserter(m_pointCloud))) {
+    if (!CGAL::IO::read_points(filePath, std::back_inserter(m_pointCloud),
+                               CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>())
+                                   .normal_map(CGAL::Second_of_pair_property_map<PointWithNormal>()))) {
         std::cerr << "Error: Cannot read points from " << filePath << std::endl;
         return false;
     }
@@ -54,10 +52,14 @@ bool CGALPointCloudProcessor::estimateNormals(NormalEstimationMethod normalMetho
             // Estimate normals using jet fitting.
             // This is a common method that requires a neighborhood size (e.g., 24 points).
             const int k_neighbors = 24;
-            CGAL::jet_estimate_normals<CGAL::Sequential_tag>(m_pointCloud, k_neighbors);
+            CGAL::jet_estimate_normals<CGAL::Sequential_tag>(m_pointCloud, k_neighbors,
+                                                             CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>())
+                                                                 .normal_map(CGAL::Second_of_pair_property_map<PointWithNormal>()));
 
             // Orient normals to be consistent
-            CGAL::mst_orient_normals(m_pointCloud, k_neighbors);
+            CGAL::mst_orient_normals(m_pointCloud, k_neighbors,
+                                     CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>())
+                                         .normal_map(CGAL::Second_of_pair_property_map<PointWithNormal>()));
 
             return true;
         }
@@ -80,9 +82,18 @@ bool CGALPointCloudProcessor::processToMesh(MeshGenerationMethod meshMethod) {
 
     switch (meshMethod) {
         case MeshGenerationMethod::POISSON_RECONSTRUCTION: {
-            // Perform Poisson surface reconstruction
+            // Perform Poisson surface reconstruction (Delaunay-based variant for broader CGAL compatibility)
             m_mesh.clear();
-            if (!CGAL::poisson_surface_reconstruction(m_pointCloud.begin(), m_pointCloud.end(), m_mesh)) {
+            const double sm_angle = 20.0;     // Min triangle angle in degrees.
+            const double sm_radius = 30.0;    // Max triangle size w.r.t point set average spacing.
+            const double sm_distance = 0.375; // Approximation error w.r.t point set average spacing.
+            const bool ok = CGAL::poisson_surface_reconstruction_delaunay(
+                    m_pointCloud.begin(), m_pointCloud.end(),
+                    CGAL::First_of_pair_property_map<PointWithNormal>(),
+                    CGAL::Second_of_pair_property_map<PointWithNormal>(),
+                    m_mesh,
+                    sm_angle, sm_radius, sm_distance);
+            if (!ok) {
                 std::cerr << "Error: Poisson surface reconstruction failed." << std::endl;
                 return false;
             }
@@ -101,7 +112,7 @@ bool CGALPointCloudProcessor::exportMesh(const std::string &filePath) {
         return false;
     }
 
-    if (!CGAL::IO::write_surface_mesh(filePath, m_mesh)) {
+    if (!CGAL::IO::write_polygon_mesh(filePath, m_mesh)) {
         std::cerr << "Error: Cannot write mesh to " << filePath << std::endl;
         return false;
     }
