@@ -23,7 +23,7 @@ To help you check your environment, we provide simple detection scripts.
     ./check_deps.sh
     ```
 -   **For Windows users**:
-    ```bat
+    ```bat (must used in developer powershell for VS 2022, otherwise cl.exe won't be found)
     .\\check_deps.bat
     ```
 These scripts will check for key dependencies (like CMake, Git, vcpkg, Homebrew) and provide guidance if they are missing.
