@@ -78,27 +78,37 @@ For Windows and Linux, we recommend using [vcpkg](https://vcpkg.io/), a C++ pack
 
 ### On Windows/Linux (with vcpkg)
 
+**Important for Windows Users**: All command-line operations must be performed in a **Developer Command Prompt for Visual Studio**. You can find this in your Start Menu. Using a standard Command Prompt or PowerShell window will likely result in build failures because the C++ compiler (`cl.exe`) will not be found. A better alternative is to use the `start-vscode-dev.bat` script to launch VS Code in the correct environment.
+
 #### Using the Command Line
 1.  **Configure**: 
     ```bash
-    # Replace [path/to/vcpkg] with your vcpkg installation path
-    cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=[path/to/vcpkg]/scripts/buildsystems/vcpkg.cmake
+    # Select the appropriate preset for your system
+    cmake --preset windows-vcpkg  # On Windows
+    cmake --preset linux-vcpkg    # On Linux
     ```
-2.  **Build**: `cmake --build build`
+2.  **Build**:
+    ```bash
+    # The preset name can also be used for building
+    cmake --build --preset windows-vcpkg # On Windows
+    cmake --build --preset linux-vcpkg   # On Linux
+    ```
 3.  **Run**:
     ```bash
     # Linux
     ./build/PointToMesh
     # Windows
-    .\\build\\Debug\\PointToMesh.exe
+    .\\build\\windows\\Debug\\PointToMesh.exe
     ```
 
 #### Using an IDE
--   **Visual Studio 2022**:
-    -   Ensure you have run `vcpkg integrate install`.
-    -   Use "Open a local folder" to open the project root.
-    -   VS2022 will automatically detect `vcpkg.json` and configure the project.
+This project includes a `CMakePresets.json` file, which simplifies configuration in modern IDEs.
+
+-   **Visual Studio 2022 / VS Code**:
+    -   Ensure you have run `vcpkg integrate install` and set the `VCPKG_ROOT` environment variable.
+    -   The IDE will automatically detect `CMakePresets.json`.
+    -   Simply select the appropriate configure preset (e.g., `windows-vcpkg`) from the UI to configure the project.
+
 -   **CLion**:
-    -   Go to `Settings/Preferences | Build, Execution, Deployment | CMake`.
-    -   In "CMake options", add `-DCMAKE_TOOLCHAIN_FILE=[path/to/vcpkg]/scripts/buildsystems/vcpkg.cmake`.
-    -   Reload the CMake project.
+    -   Open the project. CLion will automatically use the presets.
+    -   You can switch between presets (e.g., `windows-vcpkg`, `macos-homebrew`) using the configuration switcher in the status bar.
