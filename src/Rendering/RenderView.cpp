@@ -1,41 +1,128 @@
 #include "RenderView.h"
 
+#include <QMouseEvent>
+#include <QWheelEvent>
 #include <QOpenGLContext>
-#include <QPainter>
+#include <QtMath>
+#include <algorithm>
 
-RenderView::RenderView(QWidget* parent) : QOpenGLWidget(parent) {}
+RenderView::RenderView(QWidget* parent) : QOpenGLWidget(parent) {
+    // Reasonable defaults
+    m_cfg.pointSize = 3.0f;
+}
 
 void RenderView::setPointCloud(PointCloudPtr cloud) {
-    QMutexLocker lock(&m_mutex);
-    m_cloud = std::move(cloud);
+    {
+        QMutexLocker lock(&m_mutex);
+        m_cloud = std::move(cloud);
+        m_pointsDirty = true;
+    }
+    refitCameraToData();
     update();
 }
 
 void RenderView::setMesh(MeshPtr mesh) {
-    QMutexLocker lock(&m_mutex);
-    m_mesh = std::move(mesh);
+    {
+        QMutexLocker lock(&m_mutex);
+        m_mesh = std::move(mesh);
+        m_meshDirty = true;
+    }
+    refitCameraToData();
     update();
 }
 
 void RenderView::initializeGL() {
-    initializeOpenGLFunctions();
-    glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
+    // Ensure we have a recent GL context (project should set a default format in main if needed)
     glEnable(GL_DEPTH_TEST);
+    glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
+
+    QString err;
+    if (!m_renderer.initialize(m_shaders, &err)) {
+        qWarning("Renderer init failed: %s", qPrintable(err));
+    }
 }
 
 void RenderView::resizeGL(int w, int h) {
-    glViewport(0, 0, w, h);
+    Q_UNUSED(w); Q_UNUSED(h);
+}
+
+void RenderView::computeBounds(const PointCloudPtr& cloud, const MeshPtr& mesh, QVector3D& minP, QVector3D& maxP) {
+    bool first = true;
+    auto acc = [&](const QVector3D& v){
+        if (first) { minP = maxP = v; first = false; }
+        else {
+            minP.setX(std::min(minP.x(), v.x())); minP.setY(std::min(minP.y(), v.y())); minP.setZ(std::min(minP.z(), v.z()));
+            maxP.setX(std::max(maxP.x(), v.x())); maxP.setY(std::max(maxP.y(), v.y())); maxP.setZ(std::max(maxP.z(), v.z()));
+        }
+    };
+    if (cloud) { for (const auto& p : cloud->points) acc(p); }
+    if (mesh)  { for (const auto& v : mesh->vertices) acc(v); }
+    if (first) { minP = QVector3D(-1,-1,-1); maxP = QVector3D(1,1,1); }
+}
+
+void RenderView::refitCameraToData() {
+    PointCloudPtr c; MeshPtr m;
+    {
+        QMutexLocker lock(&m_mutex);
+        c = m_cloud; m = m_mesh;
+    }
+    QVector3D minP, maxP; computeBounds(c, m, minP, maxP);
+    const QVector3D center = 0.5f*(minP+maxP);
+    const QVector3D ext = 0.5f*(maxP-minP);
+    const float radius = std::max({ext.x(), ext.y(), ext.z(), 0.5f});
+    m_camera.setTarget(center);
+    m_camera.setDistance(std::max(3.0f*radius, 0.5f));
+    m_camera.setNearFar(0.01f, std::max(1000.0f, 10.0f*radius));
 }
 
 void RenderView::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Placeholder rendering: nothing drawn yet. Hook up VBO/VAO & shaders here.
-    // For quick visual feedback, draw text with QPainter (not performant, but fine for placeholders).
-    QPainter p(this);
-    p.setPen(Qt::white);
-    p.drawText(rect(), Qt::AlignTop | Qt::AlignLeft, "RenderView ready");
-    p.end();
+    // Upload on demand
+    if (m_pointsDirty) {
+        PointCloudPtr c; { QMutexLocker lock(&m_mutex); c = m_cloud; m_pointsDirty = false; }
+        m_renderer.updatePoints(c);
+    }
+    if (m_meshDirty) {
+        MeshPtr m; { QMutexLocker lock(&m_mutex); m = m_mesh; m_meshDirty = false; }
+        m_renderer.updateMesh(m);
+    }
+
+    m_renderer.draw(m_camera, m_cfg, size());
 }
 
+void RenderView::mousePressEvent(QMouseEvent* e) {
+    m_lastPos = e->pos();
+    if (e->button() == Qt::LeftButton) m_leftDown = true;
+    if (e->button() == Qt::RightButton || e->button() == Qt::MiddleButton) m_rightDown = true;
+}
 
+void RenderView::mouseMoveEvent(QMouseEvent* e) {
+    const QPoint cur = e->pos();
+    const QPoint delta = cur - m_lastPos;
+    m_lastPos = cur;
+    if (width() == 0 || height() == 0) return;
+
+    const float ndx = float(delta.x()) / float(width());
+    const float ndy = float(delta.y()) / float(height());
+
+    if (m_leftDown) {
+        // Orbit
+        m_camera.orbit(ndx, -ndy);
+        update();
+    } else if (m_rightDown) {
+        // Pan
+        m_camera.pan(ndx, ndy);
+        update();
+    }
+}
+
+void RenderView::wheelEvent(QWheelEvent* e) {
+    // Typical mouse wheel delivers 120 per notched step
+    const float steps = float(e->angleDelta().y()) / 120.0f;
+    if (steps != 0.0f) {
+        m_camera.zoom(steps);
+        update();
+    }
+    e->accept();
+}

@@ -48,6 +48,13 @@ add_executable(PointToMesh
     src/UI/LogPanel.h
     src/Rendering/RenderView.cpp
     src/Rendering/RenderView.h
+    src/Rendering/Camera.cpp
+    src/Rendering/Camera.h
+    src/Rendering/Renderer.cpp
+    src/Rendering/Renderer.h
+    src/Rendering/ShaderLibrary.cpp
+    src/Rendering/ShaderLibrary.h
+    src/Rendering/RenderConfig.h
     src/Presentation/ProcessingWorker.cpp
     src/Presentation/ProcessingWorker.h
     src/Presentation/PointCloudController.cpp
