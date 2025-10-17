@@ -16,6 +16,9 @@
 #include <QCheckBox>
 #include <QAction>
 #include <QDockWidget>
+#include "../Presentation/SettingsManager.h"
+#include "../Presentation/ViewSettingsBinder.h"
+#include "../Presentation/WindowStateGuard.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_unique<Ui::MainWindow>()) {
     ui->setupUi(this);
@@ -55,38 +58,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
         connect(a, &QAction::triggered, this, [this]{ m_controller->runReconstruction(); });
     }
 
-    // View Settings dock toggler in View menu
-    if (auto a = findChild<QAction*>("actionViewSettings")) {
-        a->setChecked(ui->viewSettingsDock->isVisible());
-        connect(a, &QAction::toggled, this, [this](bool on){ ui->viewSettingsDock->setVisible(on); });
-        connect(ui->viewSettingsDock, &QDockWidget::visibilityChanged, this, [a](bool vis){ a->setChecked(vis); });
-    }
+    // RAII restore/sync of window geometry and dock layout
+    m_windowStateGuard = std::make_unique<WindowStateGuard>(this);
 
-    // Move View controls into the View Settings dock (checkboxes)
-    if (auto *cb = findChild<QCheckBox*>("chkShowPoints")) {
-        cb->setChecked(true);
-        connect(cb, &QCheckBox::toggled, this, [this](bool on){ m_renderView->setShowPoints(on); });
-        m_renderView->setShowPoints(cb->isChecked());
-    }
-    if (auto *cb = findChild<QCheckBox*>("chkShowMesh")) {
-        cb->setChecked(true);
-        connect(cb, &QCheckBox::toggled, this, [this](bool on){ m_renderView->setShowMesh(on); });
-        m_renderView->setShowMesh(cb->isChecked());
-    }
-    if (auto *cb = findChild<QCheckBox*>("chkWireframe")) {
-        cb->setChecked(false);
-        connect(cb, &QCheckBox::toggled, this, [this](bool on){ m_renderView->setWireframe(on); });
-        m_renderView->setWireframe(cb->isChecked());
-    }
-
-    // View Settings dock: connect embedded PointSizeControlWidget
-    if (auto *psc = findChild<PointSizeControlWidget*>("pointSizeControl")) {
-        connect(psc, &PointSizeControlWidget::valueChanged, this, [this](int v){
-            m_renderView->setPointSize(static_cast<float>(v));
-        });
-        // Sync current persisted value to the renderer on startup
-        m_renderView->setPointSize(static_cast<float>(psc->value()));
-    }
+    // Bind all view-related settings and controls in one place
+    m_viewSettingsBinder = std::make_unique<ViewSettingsBinder>(
+        m_renderView,
+        ui->viewSettingsDock,
+        ui->actionViewSettings,
+        findChild<QCheckBox*>("chkShowPoints"),
+        findChild<QCheckBox*>("chkShowMesh"),
+        findChild<QCheckBox*>("chkWireframe"),
+        findChild<PointSizeControlWidget*>("pointSizeControl"),
+        this
+    );
+    m_viewSettingsBinder->initialize();
 }
 
 MainWindow::~MainWindow() = default;

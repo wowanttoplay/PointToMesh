@@ -23,9 +23,6 @@ private slots:
     void onSliderChanged(int v);
 
 private:
-    void loadSettings();
-    void saveSettings();
-
     QSlider* m_slider {nullptr};
     QLabel*  m_valueLabel {nullptr};
     int m_min {1};
@@ -33,4 +30,3 @@ private:
 };
 
 #endif // POINTTOMESH_POINTSIZECONTROLWIDGET_H
-

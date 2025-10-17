@@ -3,11 +3,7 @@
 #include <QSlider>
 #include <QLabel>
 #include <QHBoxLayout>
-#include <QSettings>
 #include <algorithm>
-
-static constexpr const char* kSettingsGroup = "render";
-static constexpr const char* kPointSizeKey  = "pointSize";
 
 PointSizeControlWidget::PointSizeControlWidget(QWidget* parent)
     : QWidget(parent)
@@ -27,12 +23,12 @@ PointSizeControlWidget::PointSizeControlWidget(QWidget* parent)
 
     connect(m_slider, &QSlider::valueChanged, this, &PointSizeControlWidget::onSliderChanged);
 
-    loadSettings();
+    // Initialize UI to a sensible default; binder will override with persisted value
+    m_slider->setValue(3);
+    m_valueLabel->setText(QString::number(m_slider->value()));
 }
 
-PointSizeControlWidget::~PointSizeControlWidget() {
-    saveSettings();
-}
+PointSizeControlWidget::~PointSizeControlWidget() = default;
 
 void PointSizeControlWidget::setRange(int min, int max) {
     if (min > max) std::swap(min, max);
@@ -51,22 +47,5 @@ int PointSizeControlWidget::value() const {
 
 void PointSizeControlWidget::onSliderChanged(int v) {
     if (m_valueLabel) m_valueLabel->setText(QString::number(v));
-    saveSettings();
     emit valueChanged(v);
 }
-
-void PointSizeControlWidget::loadSettings() {
-    QSettings s;
-    s.beginGroup(kSettingsGroup);
-    const int saved = s.value(kPointSizeKey, 3).toInt();
-    s.endGroup();
-    setValue(saved);
-}
-
-void PointSizeControlWidget::saveSettings() {
-    QSettings s;
-    s.beginGroup(kSettingsGroup);
-    s.setValue(kPointSizeKey, value());
-    s.endGroup();
-}
-

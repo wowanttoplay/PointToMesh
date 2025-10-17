@@ -13,6 +13,9 @@ int main(int argc, char *argv[]) {
     QSurfaceFormat::setDefaultFormat(fmt);
 
     QApplication app(argc, argv);
+    QCoreApplication::setOrganizationName("PointToMeshProject");
+    QCoreApplication::setOrganizationDomain("point2mesh.local");
+    QCoreApplication::setApplicationName("PointToMesh");
 
     MainWindow mainWindow;
     mainWindow.show();

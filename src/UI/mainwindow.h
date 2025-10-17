@@ -9,9 +9,13 @@
 #include <QPointer>
 #include <memory>
 
+class QCloseEvent;
+
 class LogPanel; // forward declaration
 class RenderView; // forward declaration
 class PointCloudController; // forward declaration
+class WindowStateGuard; // forward declaration
+class ViewSettingsBinder; // forward declaration
 
 QT_BEGIN_NAMESPACE
 
@@ -33,6 +37,8 @@ private:
     QPointer<LogPanel> m_logPanel {nullptr};
     QPointer<RenderView> m_renderView {nullptr};
     QPointer<PointCloudController> m_controller {nullptr};
+    std::unique_ptr<WindowStateGuard> m_windowStateGuard; // RAII for geometry/state
+    std::unique_ptr<ViewSettingsBinder> m_viewSettingsBinder; // Binds UI <-> settings <-> view
 };
 
 
