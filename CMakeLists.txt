@@ -44,6 +44,8 @@ add_executable(PointToMesh
     src/UI/mainwindow.cpp
     src/UI/mainwindow.h
     src/UI/mainwindow.ui
+    src/UI/LogPanel.cpp
+    src/UI/LogPanel.h
     src/DataProcess/CGALPointCloudProcessor.cpp
     src/DataProcess/CGALPointCloudProcessor.h
     src/DataProcess/PointCloudProcessor.h

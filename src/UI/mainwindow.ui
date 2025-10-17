@@ -57,9 +57,7 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QPlainTextEdit" name="logOutput"/>
-     </item>
+     <!-- Intentionally left empty; LogPanel will be added at runtime -->
     </layout>
    </widget>
   </widget>

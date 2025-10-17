@@ -6,12 +6,14 @@
 
 #include "mainwindow.h"
 #include "ui_MainWindow.h"
+#include "LogPanel.h"
 
-
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_unique<Ui::MainWindow>()) {
     ui->setupUi(this);
+
+    // Replace dock content with LogPanel so logging is encapsulated
+    m_logPanel = new LogPanel(this);
+    ui->dockWidget->setWidget(m_logPanel);
 }
 
-MainWindow::~MainWindow() {
-    delete ui;
-}
+MainWindow::~MainWindow() = default;

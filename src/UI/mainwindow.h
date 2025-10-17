@@ -6,7 +6,10 @@
 #define POINTTOMESH_MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QPointer>
+#include <memory>
 
+class LogPanel; // forward declaration
 
 QT_BEGIN_NAMESPACE
 
@@ -21,11 +24,11 @@ class MainWindow : public QMainWindow {
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
-
     ~MainWindow() override;
 
 private:
-    Ui::MainWindow *ui;
+    std::unique_ptr<Ui::MainWindow> ui;
+    QPointer<LogPanel> m_logPanel {nullptr};
 };
 
 
