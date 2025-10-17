@@ -13,6 +13,9 @@
 #include <QFileDialog>
 #include <QtGlobal>
 #include "PointSizeControlWidget.h"
+#include <QCheckBox>
+#include <QAction>
+#include <QDockWidget>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_unique<Ui::MainWindow>()) {
     ui->setupUi(this);
@@ -52,22 +55,30 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
         connect(a, &QAction::triggered, this, [this]{ m_controller->runReconstruction(); });
     }
 
-    // View menu actions wiring
-    if (auto a = findChild<QAction*>("actionShowPoints")) {
-        a->setChecked(true);
-        connect(a, &QAction::toggled, this, [this](bool on){ m_renderView->setShowPoints(on); });
-        m_renderView->setShowPoints(a->isChecked());
+    // View Settings dock toggler in View menu
+    if (auto a = findChild<QAction*>("actionViewSettings")) {
+        a->setChecked(ui->viewSettingsDock->isVisible());
+        connect(a, &QAction::toggled, this, [this](bool on){ ui->viewSettingsDock->setVisible(on); });
+        connect(ui->viewSettingsDock, &QDockWidget::visibilityChanged, this, [a](bool vis){ a->setChecked(vis); });
     }
-    if (auto a = findChild<QAction*>("actionShowMesh")) {
-        a->setChecked(true);
-        connect(a, &QAction::toggled, this, [this](bool on){ m_renderView->setShowMesh(on); });
-        m_renderView->setShowMesh(a->isChecked());
+
+    // Move View controls into the View Settings dock (checkboxes)
+    if (auto *cb = findChild<QCheckBox*>("chkShowPoints")) {
+        cb->setChecked(true);
+        connect(cb, &QCheckBox::toggled, this, [this](bool on){ m_renderView->setShowPoints(on); });
+        m_renderView->setShowPoints(cb->isChecked());
     }
-    if (auto a = findChild<QAction*>("actionWireframe")) {
-        a->setChecked(false);
-        connect(a, &QAction::toggled, this, [this](bool on){ m_renderView->setWireframe(on); });
-        m_renderView->setWireframe(a->isChecked());
+    if (auto *cb = findChild<QCheckBox*>("chkShowMesh")) {
+        cb->setChecked(true);
+        connect(cb, &QCheckBox::toggled, this, [this](bool on){ m_renderView->setShowMesh(on); });
+        m_renderView->setShowMesh(cb->isChecked());
     }
+    if (auto *cb = findChild<QCheckBox*>("chkWireframe")) {
+        cb->setChecked(false);
+        connect(cb, &QCheckBox::toggled, this, [this](bool on){ m_renderView->setWireframe(on); });
+        m_renderView->setWireframe(cb->isChecked());
+    }
+
     // View Settings dock: connect embedded PointSizeControlWidget
     if (auto *psc = findChild<PointSizeControlWidget*>("pointSizeControl")) {
         connect(psc, &PointSizeControlWidget::valueChanged, this, [this](int v){
