@@ -32,11 +32,13 @@ The recommended workflow on Windows is to use Visual Studio 2022, which will aut
 
 1.  **Prerequisite**: Install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/). Make sure to include the **"Desktop development with C++"** workload during installation.
 
-2.  **Open Project**: Launch Visual Studio 2022 and use the "Open a local folder" option to open the cloned project directory.
+2. **Location**: One important note: Due to Windows' path length limitations, it is recommended to place your project in a very short path such as Documents or the C: drive. Otherwise, CMake compilation may fail.
 
-3.  **Automatic Dependency Installation**: Visual Studio will automatically detect the `vcpkg.json` file and start downloading and building the Qt and CGAL dependencies. You can monitor the progress in the "Output" window.
+3.  **Open Project**: Launch Visual Studio 2022 and use the "Open a local folder" option to open the cloned project directory.
 
-4.  **Build and Run**: Once CMake generation and dependency installation are complete, select the `PointToMesh.exe` target from the "Select Startup Item" dropdown in the toolbar and press the green "Run" button.
+4.  **Automatic Dependency Installation**: Visual Studio will automatically detect the `vcpkg.json` file and start downloading and building the Qt and CGAL dependencies. You can monitor the progress in the "Output" window.
+
+5.  **Build and Run**: Once CMake generation and dependency installation are complete, select the `PointToMesh.exe` target from the "Select Startup Item" dropdown in the toolbar and press the green "Run" button.
 
 ### On macOS (Recommended)
 
