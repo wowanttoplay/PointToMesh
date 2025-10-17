@@ -11,6 +11,7 @@
 #include "../Presentation/PointCloudController.h"
 #include "../DataProcess/CGALPointCloudProcessor.h"
 #include <QFileDialog>
+#include <QtGlobal>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_unique<Ui::MainWindow>()) {
     ui->setupUi(this);
@@ -21,6 +22,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
 
     // Replace central widget with our RenderView
     m_renderView = new RenderView(this);
+    if (!m_renderView) {
+        qFatal("Failed to create RenderView. Exiting.");
+    }
     setCentralWidget(m_renderView);
 
     // Create controller with CGAL backend
@@ -46,6 +50,31 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
     if (auto a = findChild<QAction*>("actionReconstruct")) {
         connect(a, &QAction::triggered, this, [this]{ m_controller->runReconstruction(); });
     }
+
+    // View menu actions wiring
+    if (auto a = findChild<QAction*>("actionShowPoints")) {
+        a->setChecked(true);
+        connect(a, &QAction::toggled, this, [this](bool on){ m_renderView->setShowPoints(on); });
+        m_renderView->setShowPoints(a->isChecked());
+    }
+    if (auto a = findChild<QAction*>("actionShowMesh")) {
+        a->setChecked(true);
+        connect(a, &QAction::toggled, this, [this](bool on){ m_renderView->setShowMesh(on); });
+        m_renderView->setShowMesh(a->isChecked());
+    }
+    if (auto a = findChild<QAction*>("actionWireframe")) {
+        a->setChecked(false);
+        connect(a, &QAction::toggled, this, [this](bool on){ m_renderView->setWireframe(on); });
+        m_renderView->setWireframe(a->isChecked());
+    }
+    if (auto a = findChild<QAction*>("actionPointSizeIncrease")) {
+        connect(a, &QAction::triggered, this, [this]{ m_renderView->adjustPointSize(+1.0f); });
+    }
+    if (auto a = findChild<QAction*>("actionPointSizeDecrease")) {
+        connect(a, &QAction::triggered, this, [this]{ m_renderView->adjustPointSize(-1.0f); });
+    }
+    // Initialize point size default
+    m_renderView->setPointSize(3.0f);
 }
 
 MainWindow::~MainWindow() = default;

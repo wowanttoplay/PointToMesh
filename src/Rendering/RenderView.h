@@ -21,7 +21,11 @@ public slots:
     void setShowPoints(bool on) { m_cfg.showPoints = on; update(); }
     void setShowMesh(bool on) { m_cfg.showMesh = on; update(); }
     void setWireframe(bool on) { m_cfg.wireframe = on; update(); }
-    void setPointSize(float s) { m_cfg.pointSize = s; update(); }
+    void setPointSize(float s) { m_cfg.pointSize = std::clamp(s, 1.0f, 20.0f); update(); }
+
+public:
+    float pointSize() const { return m_cfg.pointSize; }
+    void adjustPointSize(float delta) { setPointSize(m_cfg.pointSize + delta); }
 
 protected:
     void initializeGL() override;
