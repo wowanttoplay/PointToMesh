@@ -10,6 +10,8 @@
 #include <memory>
 
 class LogPanel; // forward declaration
+class RenderView; // forward declaration
+class PointCloudController; // forward declaration
 
 QT_BEGIN_NAMESPACE
 
@@ -29,6 +31,8 @@ public:
 private:
     std::unique_ptr<Ui::MainWindow> ui;
     QPointer<LogPanel> m_logPanel {nullptr};
+    QPointer<RenderView> m_renderView {nullptr};
+    QPointer<PointCloudController> m_controller {nullptr};
 };
 
 

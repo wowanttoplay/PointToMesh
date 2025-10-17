@@ -7,6 +7,10 @@
 #include "mainwindow.h"
 #include "ui_MainWindow.h"
 #include "LogPanel.h"
+#include "../Rendering/RenderView.h"
+#include "../Presentation/PointCloudController.h"
+#include "../DataProcess/CGALPointCloudProcessor.h"
+#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_unique<Ui::MainWindow>()) {
     ui->setupUi(this);
@@ -14,6 +18,34 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
     // Replace dock content with LogPanel so logging is encapsulated
     m_logPanel = new LogPanel(this);
     ui->dockWidget->setWidget(m_logPanel);
+
+    // Replace central widget with our RenderView
+    m_renderView = new RenderView(this);
+    setCentralWidget(m_renderView);
+
+    // Create controller with CGAL backend
+    m_controller = new PointCloudController(std::make_unique<CGALPointCloudProcessor>(), this);
+
+    // Wire controller to UI components
+    connect(m_controller, &PointCloudController::logMessage, m_logPanel, &LogPanel::appendLog);
+    connect(m_controller, &PointCloudController::pointCloudUpdated, m_renderView, &RenderView::setPointCloud);
+    connect(m_controller, &PointCloudController::meshUpdated, m_renderView, &RenderView::setMesh);
+
+    // Menu actions
+    connect(ui->actionImport, &QAction::triggered, this, [this]{
+        const QString path = QFileDialog::getOpenFileName(this, tr("Open point cloud"), QString(), tr("Point clouds (*.xyz *.ply *.off *.pts);;All Files (*.*)"));
+        if (!path.isEmpty()) m_controller->importFromFile(path);
+    });
+
+    connect(ui->actionExport, &QAction::triggered, this, [this]{
+        const QString path = QFileDialog::getSaveFileName(this, tr("Export mesh"), QString(), tr("Meshes (*.ply *.obj *.off *.stl);;All Files (*.*)"));
+        if (!path.isEmpty()) m_controller->exportMesh(path, /*withNormals=*/true);
+    });
+
+    // Optional reconstruct action if present
+    if (auto a = findChild<QAction*>("actionReconstruct")) {
+        connect(a, &QAction::triggered, this, [this]{ m_controller->runReconstruction(); });
+    }
 }
 
 MainWindow::~MainWindow() = default;
