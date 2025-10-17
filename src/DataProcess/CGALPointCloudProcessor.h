@@ -18,7 +18,8 @@ public:
     bool loadPointCloud(const std::string& filePath) override;
     bool estimateNormals(NormalEstimationMethod normalMethod = NormalEstimationMethod::JET_ESTIMATION) override;
     bool processToMesh(MeshGenerationMethod meshMethod = MeshGenerationMethod::POISSON_RECONSTRUCTION) override;
-    bool exportMesh(const std::string& filePath) override;
+    bool exportMesh(const std::string& filePath, bool withNormals = false) override;
+    bool computeMeshNormals() override;
 
     const PointCloud& getPointCloud() const override;
     const Mesh& getMesh() const override;

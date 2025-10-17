@@ -7,6 +7,11 @@
 #include <CGAL/IO/polygon_mesh_io.h>
 #include <CGAL/poisson_surface_reconstruction.h>
 #include <CGAL/property_map.h>
+#include <CGAL/Polygon_mesh_processing/compute_normal.h>
+#include <CGAL/IO/PLY.h>
+#include <cctype>
+
+namespace PMP = CGAL::Polygon_mesh_processing;
 
 // Normal Estimation
 #include <CGAL/jet_estimate_normals.h>
@@ -106,16 +111,65 @@ bool CGALPointCloudProcessor::processToMesh(MeshGenerationMethod meshMethod) {
     }
 }
 
-bool CGALPointCloudProcessor::exportMesh(const std::string &filePath) {
+bool CGALPointCloudProcessor::exportMesh(const std::string &filePath, bool withNormals) {
     if (m_mesh.is_empty()) {
         std::cerr << "Error: Mesh is empty. Generate a mesh first." << std::endl;
         return false;
     }
 
+    // If normals requested, ensure we have per-vertex normals and let the generic writer
+    // include them for any format that supports normals (OBJ/PLY/NOFF, etc.).
+    if (withNormals) {
+        auto vnormals_opt = m_mesh.property_map<Mesh::Vertex_index, Vector>("v:normal");
+        if (!vnormals_opt) {
+            if (!computeMeshNormals()) {
+                std::cerr << "Error: Failed to compute normals for export." << std::endl;
+                return false;
+            }
+            vnormals_opt = m_mesh.property_map<Mesh::Vertex_index, Vector>("v:normal");
+        }
+
+        if (!vnormals_opt) {
+            std::cerr << "Error: Vertex normal property not available after computation." << std::endl;
+            return false;
+        }
+
+        // Use the generic writer with a vertex_normal_map; formats that support normals will embed them.
+        if (!CGAL::IO::write_polygon_mesh(filePath, m_mesh,
+                                           CGAL::parameters::vertex_normal_map(*vnormals_opt))) {
+            std::cerr << "Error: Cannot write mesh (with normals) to " << filePath << std::endl;
+            return false;
+        }
+        return true;
+    }
+
+    // Without normals, fall back to the generic writer.
     if (!CGAL::IO::write_polygon_mesh(filePath, m_mesh)) {
         std::cerr << "Error: Cannot write mesh to " << filePath << std::endl;
         return false;
     }
+
+    return true;
+}
+
+bool CGALPointCloudProcessor::computeMeshNormals() {
+    if (m_mesh.is_empty()) {
+        std::cerr << "Error: Mesh is empty. Cannot compute normals." << std::endl;
+        return false;
+    }
+
+    // Create or get per-vertex normal property and compute
+    auto vnormals = m_mesh.add_property_map<Mesh::Vertex_index, Vector>("v:normal", CGAL::NULL_VECTOR).first;
+    try {
+        PMP::compute_vertex_normals(m_mesh, vnormals);
+    } catch (const std::exception& e) {
+        std::cerr << "Error computing vertex normals: " << e.what() << std::endl;
+        return false;
+    }
+
+    // Optionally compute face normals and store as property (not required for export)
+    // auto fnormals = m_mesh.add_property_map<Mesh::Face_index, Vector>("f:normal", CGAL::NULL_VECTOR).first;
+    // PMP::compute_face_normals(m_mesh, fnormals);
 
     return true;
 }

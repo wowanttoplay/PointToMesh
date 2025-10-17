@@ -74,9 +74,10 @@ public:
     /**
      * @brief Exports the generated mesh to a file.
      * @param filePath The path to the output mesh file.
+     * @param withNormals If true, export vertex normals when supported by the format.
      * @return True if exporting was successful, false otherwise.
      */
-    virtual bool exportMesh(const std::string& filePath) = 0;
+    virtual bool exportMesh(const std::string& filePath, bool withNormals = false) = 0;
 
     /**
      * @brief Provides access to the internal point cloud data.
@@ -95,6 +96,13 @@ public:
      * @return A const reference to the mesh.
      */
     virtual const Mesh& getMesh() const = 0;
+
+    /**
+     * @brief Compute and attach normals for the current mesh.
+     *        Creates/updates per-vertex normals property (and per-face optionally in impl).
+     * @return True if normals were computed successfully, false otherwise.
+     */
+    virtual bool computeMeshNormals() = 0;
 };
 
 #endif //POINTTOMESH_POINTCLOUDPROCESSOR_H
