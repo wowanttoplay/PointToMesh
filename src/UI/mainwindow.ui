@@ -43,9 +43,6 @@
     <addaction name="actionShowPoints"/>
     <addaction name="actionShowMesh"/>
     <addaction name="actionWireframe"/>
-    <addaction name="separator"/>
-    <addaction name="actionPointSizeIncrease"/>
-    <addaction name="actionPointSizeDecrease"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
@@ -65,6 +62,24 @@
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout">
      <!-- Intentionally left empty; LogPanel will be added at runtime -->
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="viewSettingsDock">
+   <property name="features">
+    <set>QDockWidget::DockWidgetMovable|QDockWidget::DockWidgetFloatable</set>
+   </property>
+   <property name="windowTitle">
+    <string>View Settings</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="viewSettingsContents">
+    <layout class="QVBoxLayout" name="viewSettingsLayout">
+     <item>
+      <widget class="PointSizeControlWidget" name="pointSizeControl"/>
+     </item>
     </layout>
    </widget>
   </widget>
@@ -116,22 +131,17 @@
     <string>Wireframe</string>
    </property>
   </action>
-  <action name="actionPointSizeIncrease">
-   <property name="text">
-    <string>Point Size +</string>
-   </property>
-  </action>
-  <action name="actionPointSizeDecrease">
-   <property name="text">
-    <string>Point Size -</string>
-   </property>
-  </action>
  </widget>
  <customwidgets>
   <customwidget>
    <class>QOpenGLWidget</class>
    <extends>QWidget</extends>
    <header>qopenglwidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>PointSizeControlWidget</class>
+   <extends>QWidget</extends>
+   <header>src/UI/PointSizeControlWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

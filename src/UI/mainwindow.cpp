@@ -12,6 +12,7 @@
 #include "../DataProcess/CGALPointCloudProcessor.h"
 #include <QFileDialog>
 #include <QtGlobal>
+#include "PointSizeControlWidget.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_unique<Ui::MainWindow>()) {
     ui->setupUi(this);
@@ -67,14 +68,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
         connect(a, &QAction::toggled, this, [this](bool on){ m_renderView->setWireframe(on); });
         m_renderView->setWireframe(a->isChecked());
     }
-    if (auto a = findChild<QAction*>("actionPointSizeIncrease")) {
-        connect(a, &QAction::triggered, this, [this]{ m_renderView->adjustPointSize(+1.0f); });
+    // View Settings dock: connect embedded PointSizeControlWidget
+    if (auto *psc = findChild<PointSizeControlWidget*>("pointSizeControl")) {
+        connect(psc, &PointSizeControlWidget::valueChanged, this, [this](int v){
+            m_renderView->setPointSize(static_cast<float>(v));
+        });
+        // Sync current persisted value to the renderer on startup
+        m_renderView->setPointSize(static_cast<float>(psc->value()));
     }
-    if (auto a = findChild<QAction*>("actionPointSizeDecrease")) {
-        connect(a, &QAction::triggered, this, [this]{ m_renderView->adjustPointSize(-1.0f); });
-    }
-    // Initialize point size default
-    m_renderView->setPointSize(3.0f);
 }
 
 MainWindow::~MainWindow() = default;
