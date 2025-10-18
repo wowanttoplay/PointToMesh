@@ -90,102 +90,59 @@ target_link_libraries(PointToMesh PRIVATE
     Eigen3::Eigen
 )
 
-# Deploy Qt runtime (Windows-only; copy DLLs with windeployqt)
 if (WIN32)
-    # Prefer the vcpkg installed dir inside the build tree when using VS integration
-    set(VCPKG_INSTALLED_DIR "")
-    foreach(_cand
-        "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}"
-        "${CMAKE_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}"
-        "$ENV{VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}"
-    )
-        if (EXISTS "${_cand}")
-            set(VCPKG_INSTALLED_DIR "${_cand}")
-            break()
-        endif()
-    endforeach()
-
-
-    # Locate windeployqt from vcpkg (qttools)
-    set(_WINDEPLOYQT_HINTS
-        "${VCPKG_INSTALLED_DIR}/tools/qt6/bin"
-        "${VCPKG_INSTALLED_DIR}/tools/qt6"
-        "${VCPKG_INSTALLED_DIR}/tools/qttools"
-        "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/tools/qt6/bin"
-        "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/tools/qt6"
-        "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/tools/qttools"
-        "${CMAKE_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/tools/qt6/bin"
-        "${CMAKE_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/tools/qt6"
-        "${CMAKE_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/tools/qttools"
-        "$ENV{VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/tools/qt6/bin"
-        "$ENV{VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/tools/qt6"
-        "$ENV{VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/tools/qttools"
-    )
+    # 在常见的 vcpkg 布局下定位 windeployqt
     find_program(WINDEPLOYQT_EXECUTABLE
-        NAMES windeployqt windeployqt.exe
-        HINTS ${_WINDEPLOYQT_HINTS}
+        NAMES windeployqt.exe
+        HINTS
+            "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/tools/qt6/bin"
+            "$ENV{VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/tools/qt6/bin"
     )
-
-    # Resolve Debug bin/plugins with vcpkg fallbacks (installed -> packages -> buildtrees)
-    set(QT_DBG_BIN_DIR "")
-    foreach(_cand
-        "${VCPKG_INSTALLED_DIR}/debug/bin"
-        "$ENV{VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/debug/bin"
-        "$ENV{VCPKG_ROOT}/packages/qtbase_${VCPKG_TARGET_TRIPLET}/debug/bin"
-        "$ENV{VCPKG_ROOT}/buildtrees/qtbase/${VCPKG_TARGET_TRIPLET}-dbg/bin"
-    )
-        if (EXISTS "${_cand}")
-            set(QT_DBG_BIN_DIR "${_cand}")
-            break()
-        endif()
-    endforeach()
-
-    set(QT_DBG_PLUGINS_DIR "")
-    foreach(_cand
-        "${VCPKG_INSTALLED_DIR}/debug/plugins"
-        "$ENV{VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/debug/plugins"
-        "$ENV{VCPKG_ROOT}/packages/qtbase_${VCPKG_TARGET_TRIPLET}/debug/plugins"
-        "$ENV{VCPKG_ROOT}/buildtrees/qtbase/${VCPKG_TARGET_TRIPLET}-dbg/plugins"
-    )
-        if (EXISTS "${_cand}")
-            set(QT_DBG_PLUGINS_DIR "${_cand}")
-            break()
-        endif()
-    endforeach()
-
-    message(STATUS "QT_DBG_BIN_DIR='${QT_DBG_BIN_DIR}'")
-    message(STATUS "QT_DBG_PLUGINS_DIR='${QT_DBG_PLUGINS_DIR}'")
-
-    # Choose mode per configuration
-    set(WINDEPLOYQT_MODE "$<$<CONFIG:Debug>:--debug>$<$<NOT:$<CONFIG:Debug>>:--release>")
 
     if (WINDEPLOYQT_EXECUTABLE)
         add_custom_command(TARGET PointToMesh POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E echo "Qt deploy target directory: $<TARGET_FILE_DIR:PointToMesh>"
-            COMMAND ${CMAKE_COMMAND} -E echo "Running: ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_MODE} --no-translations --verbose 2 --dir \"$<TARGET_FILE_DIR:PointToMesh>\" \"$<TARGET_FILE:PointToMesh>\""
-            COMMAND "${WINDEPLOYQT_EXECUTABLE}" ${WINDEPLOYQT_MODE}
-                    --no-translations
-                    --verbose 2
-                    --dir "$<TARGET_FILE_DIR:PointToMesh>"
-                    "$<TARGET_FILE:PointToMesh>"
-
-            # Copy Debug Qt DLLs/plugins from resolved vcpkg paths (Debug config only)
-            COMMAND ${CMAKE_COMMAND} -E echo "Debug DLLs fallback bin: ${QT_DBG_BIN_DIR}"
-            COMMAND cmd /C "$<IF:$<CONFIG:Debug>,if not \"${QT_DBG_BIN_DIR}\"==\"\" (echo Copying Qt debug DLLs from \"${QT_DBG_BIN_DIR}\" && robocopy \"${QT_DBG_BIN_DIR}\" \"$<TARGET_FILE_DIR:PointToMesh>\" Qt6*d.dll /xo /r:1 /w:1 /np /njh /njs & if %ERRORLEVEL% LSS 8 (exit /b 0) else (exit /b %ERRORLEVEL%)) else (echo No Qt debug bin folder found), echo Skipping debug Qt copy in non-Debug configuration>"
-            COMMAND ${CMAKE_COMMAND} -E echo "Debug plugins fallback dir: ${QT_DBG_PLUGINS_DIR}"
-            COMMAND cmd /C "$<IF:$<CONFIG:Debug>,if not \"${QT_DBG_PLUGINS_DIR}\"==\"\" (echo Copying Qt debug plugins from \"${QT_DBG_PLUGINS_DIR}\" && robocopy \"${QT_DBG_PLUGINS_DIR}\" \"$<TARGET_FILE_DIR:PointToMesh>\\plugins\" *.dll /S /xo /r:1 /w:1 /np /njh /njs & if %ERRORLEVEL% LSS 8 (exit /b 0) else (exit /b %ERRORLEVEL%)) else (echo No Qt debug plugins folder found), echo Skipping debug plugin copy in non-Debug configuration>"
-
-            # List DLLs to verify presence
-            COMMAND ${CMAKE_COMMAND} -E echo "Listing copied DLLs under: $<TARGET_FILE_DIR:PointToMesh>"
-            COMMAND ${CMAKE_COMMAND} -E chdir "$<TARGET_FILE_DIR:PointToMesh>" cmd /C "echo ==== main dir (*.dll) ==== & dir /b *.dll"
-            COMMAND cmd /C "if exist \"$<TARGET_FILE_DIR:PointToMesh>\\plugins\\platforms\" (echo ==== plugins\\platforms ==== & dir /b \"$<TARGET_FILE_DIR:PointToMesh>\\plugins\\platforms\\*.dll\") else (echo plugins\\platforms folder not found)"
-            COMMAND cmd /C "if exist \"$<TARGET_FILE_DIR:PointToMesh>\\plugins\\imageformats\" (echo ==== plugins\\imageformats ==== & dir /b \"$<TARGET_FILE_DIR:PointToMesh>\\plugins\\imageformats\\*.dll\") else (echo plugins\\imageformats folder not found)"
-            COMMAND cmd /C "if exist \"$<TARGET_FILE_DIR:PointToMesh>\\plugins\\opengl\" (echo ==== plugins\\opengl ==== & dir /b \"$<TARGET_FILE_DIR:PointToMesh>\\plugins\\opengl\\*.dll\") else (echo plugins\\opengl folder not found)"
-            COMMAND cmd /C "echo ==== check Qt6OpenGLWidgetsd.dll ==== & dir /s /b \"$<TARGET_FILE_DIR:PointToMesh>\\Qt6OpenGLWidgetsd.dll\" || echo Qt6OpenGLWidgetsd.dll not found"
-
-            COMMENT "Deploying Qt runtime with windeployqt (copying DLLs next to the exe)"
-            VERBATIM)
-    else()
-        message(WARNING "windeployqt not found. Ensure 'qttools' is installed via vcpkg.")
+            COMMAND "${WINDEPLOYQT_EXECUTABLE}"
+                $<$<CONFIG:Debug>:--debug>
+                $<$<CONFIG:Release>:--release>
+                --dir "$<TARGET_FILE_DIR:PointToMesh>"
+                "$<TARGET_FILE:PointToMesh>"
+            COMMENT "Deploying Qt runtime with windeployqt"
+        )
     endif()
+endif()
+
+# 仅在 Windows 下：把 <build>/vcpkg_installed/<triplet>/debug 合并到根前缀
+if (WIN32)
+    set(_vcpkg_prefix "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}")
+
+    # 生成一个按配置执行的复制脚本（仅 Debug 会实际复制）
+    set(_merge_dbg_script "${CMAKE_CURRENT_BINARY_DIR}/merge_vcpkg_debug_into_root_$<CONFIG>.cmake")
+    file(GENERATE OUTPUT "${_merge_dbg_script}" CONTENT "
+if (\"$<CONFIG>\" STREQUAL \"Debug\")
+  set(_src \"${_vcpkg_prefix}/debug\")
+  set(_dst \"${_vcpkg_prefix}\")
+  if (EXISTS \"\${_src}\")
+    # 先创建目录，再逐文件 copy_if_different
+    file(GLOB_RECURSE _entries RELATIVE \"\${_src}\" \"\${_src}/*\")
+    foreach(rel IN LISTS _entries)
+      set(_sp \"\${_src}/\${rel}\")
+      set(_dp \"\${_dst}/\${rel}\")
+      if (IS_DIRECTORY \"\${_sp}\")
+        file(MAKE_DIRECTORY \"\${_dp}\")
+      else()
+        get_filename_component(_dd \"\${_dp}\" DIRECTORY)
+        file(MAKE_DIRECTORY \"\${_dd}\")
+        execute_process(COMMAND \"${CMAKE_COMMAND}\" -E copy_if_different \"\${_sp}\" \"\${_dp}\")
+      endif()
+    endforeach()
+  endif()
+endif()
+")
+
+    # 在 VS 生成器下使用 PRE_BUILD，保证复制发生在构建开始前（windeployqt 仍在 POST_BUILD）
+    add_custom_command(TARGET PointToMesh PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -P $<SHELL_PATH:${_merge_dbg_script}>
+        COMMENT "Merging vcpkg debug tree into ${_vcpkg_prefix} (skip identical files) for $<CONFIG>"
+        VERBATIM
+    )
 endif()
