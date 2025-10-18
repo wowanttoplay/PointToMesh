@@ -4,6 +4,7 @@
 class QDockWidget;
 class QAction;
 class QCheckBox;
+class QPushButton;
 class PointSizeControlWidget;
 class RenderView;
 
@@ -17,6 +18,8 @@ public:
                        QCheckBox* chkShowMesh,
                        QCheckBox* chkWireframe,
                        PointSizeControlWidget* pointSizeWidget,
+                       QPushButton* btnPointColor,
+                       QPushButton* btnMeshColor,
                        QObject* parent = nullptr);
 
     void initialize();
@@ -29,4 +32,6 @@ private:
     QCheckBox* m_chkMesh {nullptr};
     QCheckBox* m_chkWire {nullptr};
     PointSizeControlWidget* m_psc {nullptr};
+    QPushButton* m_btnPointColor {nullptr};
+    QPushButton* m_btnMeshColor {nullptr};
 };

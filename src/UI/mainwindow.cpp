@@ -16,6 +16,7 @@
 #include <QCheckBox>
 #include <QAction>
 #include <QDockWidget>
+#include <QPushButton>
 #include "../Presentation/SettingsManager.h"
 #include "../Presentation/ViewSettingsBinder.h"
 #include "../Presentation/WindowStateGuard.h"
@@ -70,6 +71,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
         findChild<QCheckBox*>("chkShowMesh"),
         findChild<QCheckBox*>("chkWireframe"),
         findChild<PointSizeControlWidget*>("pointSizeControl"),
+        findChild<QPushButton*>("btnPointColor"),
+        findChild<QPushButton*>("btnMeshColor"),
         this
     );
     m_viewSettingsBinder->initialize();

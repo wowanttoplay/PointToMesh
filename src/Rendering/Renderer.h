@@ -1,16 +1,16 @@
 #pragma once
-#include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLFunctions_4_1_Core>
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLShaderProgram>
 #include <QSize>
-#include "RenderConfig.h"
+#include "../Presentation/SettingsManager.h"
 #include "../Model/Geometry.h"
 
 class ShaderLibrary;
 class Camera;
 
-class Renderer : protected QOpenGLFunctions_3_3_Core {
+class Renderer : protected QOpenGLFunctions_4_1_Core {
 public:
     Renderer();
     ~Renderer();
@@ -20,7 +20,7 @@ public:
     void updatePoints(const PointCloudPtr& cloud);
     void updateMesh(const MeshPtr& mesh);
 
-    void draw(const Camera& cam, const RenderConfig& cfg, const QSize& viewport);
+    void draw(const Camera& cam, const RenderSettings& cfg, const QSize& viewport);
 
 private:
     // Shaders

@@ -12,6 +12,17 @@ static constexpr const char* kKeyShowPoints = "showPoints";
 static constexpr const char* kKeyShowMesh   = "showMesh";
 static constexpr const char* kKeyWireframe  = "wireframe";
 static constexpr const char* kKeyPointSize  = "pointSize";
+static constexpr const char* kKeyMeshColor  = "meshColor";   // QVariantList [r,g,b]
+static constexpr const char* kKeyPointColor = "pointColor";  // QVariantList [r,g,b]
+
+static inline QVariantList toVarList(const QVector3D& v) {
+    return QVariantList{ v.x(), v.y(), v.z() };
+}
+static inline QVector3D toVec3(const QVariant& var, const QVector3D& defVal) {
+    const auto list = var.toList();
+    if (list.size() != 3) return defVal;
+    return QVector3D(list.at(0).toFloat(), list.at(1).toFloat(), list.at(2).toFloat());
+}
 
 SettingsManager& SettingsManager::instance() {
     static SettingsManager inst;
@@ -44,6 +55,8 @@ RenderSettings SettingsManager::loadRenderSettings() const {
     rs.showMesh   = s.value(kKeyShowMesh,   true).toBool();
     rs.wireframe  = s.value(kKeyWireframe,  false).toBool();
     rs.pointSize  = s.value(kKeyPointSize,  3).toInt();
+    rs.meshColor  = toVec3(s.value(kKeyMeshColor),  QVector3D(0.85f, 0.85f, 0.9f));
+    rs.pointColor = toVec3(s.value(kKeyPointColor), QVector3D(0.2f, 0.8f, 0.3f));
     s.endGroup();
     return rs;
 }
@@ -55,6 +68,8 @@ void SettingsManager::saveRenderSettings(const RenderSettings& rs) const {
     s.setValue(kKeyShowMesh,   rs.showMesh);
     s.setValue(kKeyWireframe,  rs.wireframe);
     s.setValue(kKeyPointSize,  rs.pointSize);
+    s.setValue(kKeyMeshColor,  toVarList(rs.meshColor));
+    s.setValue(kKeyPointColor, toVarList(rs.pointColor));
     s.endGroup();
 }
 
@@ -72,4 +87,3 @@ void SettingsManager::savePointSize(int v) const {
     s.setValue(kKeyPointSize, v);
     s.endGroup();
 }
-

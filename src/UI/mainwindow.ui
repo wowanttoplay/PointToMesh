@@ -111,6 +111,20 @@
      <item>
       <widget class="PointSizeControlWidget" name="pointSizeControl"/>
      </item>
+     <item>
+      <widget class="QPushButton" name="btnPointColor">
+       <property name="text">
+        <string>Point Color</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnMeshColor">
+       <property name="text">
+        <string>Mesh Color</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
   </widget>

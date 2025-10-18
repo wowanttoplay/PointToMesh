@@ -3,6 +3,7 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include <QOpenGLContext>
+#include <QSurfaceFormat>
 #include <QtMath>
 #include <algorithm>
 
@@ -32,9 +33,11 @@ void RenderView::setMesh(MeshPtr mesh) {
 }
 
 void RenderView::initializeGL() {
-    // Ensure we have a recent GL context (project should set a default format in main if needed)
-    glEnable(GL_DEPTH_TEST);
-    glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
+    // Renderer will configure global GL state; just log actual context
+    if (auto* ctx = QOpenGLContext::currentContext()) {
+        const QSurfaceFormat f = ctx->format();
+        qInfo("Using OpenGL %d.%d %s profile", f.majorVersion(), f.minorVersion(), f.profile() == QSurfaceFormat::CoreProfile ? "core" : "compat");
+    }
 
     QString err;
     if (!m_renderer.initialize(m_shaders, &err)) {
@@ -76,8 +79,6 @@ void RenderView::refitCameraToData() {
 }
 
 void RenderView::paintGL() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     // Upload on demand
     if (m_pointsDirty) {
         PointCloudPtr c; { QMutexLocker lock(&m_mutex); c = m_cloud; m_pointsDirty = false; }

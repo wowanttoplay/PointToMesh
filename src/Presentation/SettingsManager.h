@@ -1,5 +1,6 @@
 #pragma once
 #include <QByteArray>
+#include <QVector3D>
 
 class QMainWindow;
 
@@ -8,6 +9,8 @@ struct RenderSettings {
     bool showMesh {true};
     bool wireframe {false};
     int  pointSize {3};
+    QVector3D meshColor {0.85f, 0.85f, 0.9f};
+    QVector3D pointColor {0.2f, 0.8f, 0.3f};
 };
 
 class SettingsManager {

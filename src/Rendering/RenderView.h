@@ -2,8 +2,9 @@
 #include <QOpenGLWidget>
 #include <QMutex>
 #include <QPoint>
+#include <algorithm>
 #include "../Model/Geometry.h"
-#include "RenderConfig.h"
+#include "../Presentation/SettingsManager.h"
 #include "Camera.h"
 #include "ShaderLibrary.h"
 #include "Renderer.h"
@@ -21,11 +22,13 @@ public slots:
     void setShowPoints(bool on) { m_cfg.showPoints = on; update(); }
     void setShowMesh(bool on) { m_cfg.showMesh = on; update(); }
     void setWireframe(bool on) { m_cfg.wireframe = on; update(); }
-    void setPointSize(float s) { m_cfg.pointSize = std::clamp(s, 1.0f, 20.0f); update(); }
+    void setPointSize(float s) { m_cfg.pointSize = static_cast<int>(std::clamp(s, 1.0f, 20.0f)); update(); }
+    void setMeshColor(const QVector3D& c) { m_cfg.meshColor = c; update(); }
+    void setPointColor(const QVector3D& c) { m_cfg.pointColor = c; update(); }
 
 public:
-    float pointSize() const { return m_cfg.pointSize; }
-    void adjustPointSize(float delta) { setPointSize(m_cfg.pointSize + delta); }
+    float pointSize() const { return static_cast<float>(m_cfg.pointSize); }
+    void adjustPointSize(float delta) { setPointSize(pointSize() + delta); }
 
 protected:
     void initializeGL() override;
@@ -45,7 +48,7 @@ private:
     bool m_meshDirty {false};
 
     // Rendering
-    RenderConfig m_cfg;
+    RenderSettings m_cfg;
     Camera m_camera;
     ShaderLibrary m_shaders;
     Renderer m_renderer;

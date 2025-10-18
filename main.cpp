@@ -7,7 +7,7 @@ int main(int argc, char *argv[]) {
     QSurfaceFormat fmt;
     fmt.setRenderableType(QSurfaceFormat::OpenGL);
     fmt.setProfile(QSurfaceFormat::CoreProfile);
-    fmt.setVersion(3, 3);
+    fmt.setVersion(4, 1);
     fmt.setDepthBufferSize(24);
     fmt.setStencilBufferSize(8);
     QSurfaceFormat::setDefaultFormat(fmt);

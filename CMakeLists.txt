@@ -56,7 +56,6 @@ add_executable(PointToMesh
     src/Rendering/Renderer.h
     src/Rendering/ShaderLibrary.cpp
     src/Rendering/ShaderLibrary.h
-    src/Rendering/RenderConfig.h
     src/Presentation/ProcessingWorker.cpp
     src/Presentation/ProcessingWorker.h
     src/Presentation/PointCloudController.cpp
@@ -76,6 +75,7 @@ add_executable(PointToMesh
 # Add include directories
 # Add project root so includes like "src/UI/PointSizeControlWidget.h" from UIC-generated code are found
 # Also add the 'src' directory explicitly so includes like "UI/..." can be resolved via an include path.
+mark_as_advanced(Qt6_INCLUDE_DIRS)
 target_include_directories(PointToMesh PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/src

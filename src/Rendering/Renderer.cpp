@@ -6,13 +6,13 @@
 #include <QVector3D>
 
 namespace {
-constexpr const char* kBasicVert = R"(#version 330 core
+constexpr const char* kBasicVert = R"(#version 410 core
 layout(location=0) in vec3 a_pos;
 uniform mat4 u_mvp;
 void main(){ gl_Position = u_mvp * vec4(a_pos, 1.0); }
 )";
 
-constexpr const char* kBasicFrag = R"(#version 330 core
+constexpr const char* kBasicFrag = R"(#version 410 core
 uniform vec3 u_color;
 out vec4 fragColor;
 void main(){ fragColor = vec4(u_color, 1.0); }
@@ -24,6 +24,10 @@ Renderer::~Renderer() = default;
 
 bool Renderer::initialize(ShaderLibrary& shaders, QString* error) {
     initializeOpenGLFunctions();
+
+    // Global GL state
+    glEnable(GL_DEPTH_TEST);
+    glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
 
     // Prepare shader
     if (!shaders.get("basic")) {
@@ -106,11 +110,12 @@ void Renderer::updateMesh(const MeshPtr& mesh) {
     m_iboMesh.release();
 }
 
-void Renderer::draw(const Camera& cam, const RenderConfig& cfg, const QSize& viewport) {
+void Renderer::draw(const Camera& cam, const RenderSettings& cfg, const QSize& viewport) {
     if (!m_prog) return;
 
     glViewport(0, 0, viewport.width(), viewport.height());
     glEnable(GL_DEPTH_TEST);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     const float aspect = viewport.width() > 0 ? float(viewport.width())/float(std::max(1, viewport.height())) : 1.0f;
     QMatrix4x4 mvp = cam.projMatrix(aspect) * cam.viewMatrix();
@@ -133,7 +138,7 @@ void Renderer::draw(const Camera& cam, const RenderConfig& cfg, const QSize& vie
     // Points
     if (cfg.showPoints && m_pointCount > 0) {
         glEnable(GL_PROGRAM_POINT_SIZE);
-        glPointSize(cfg.pointSize);
+        glPointSize(static_cast<GLfloat>(cfg.pointSize));
         m_prog->setUniformValue(m_locColor, cfg.pointColor);
         m_vaoPoints.bind();
         glDrawArrays(GL_POINTS, 0, m_pointCount);
@@ -142,4 +147,3 @@ void Renderer::draw(const Camera& cam, const RenderConfig& cfg, const QSize& vie
 
     m_prog->release();
 }
-
