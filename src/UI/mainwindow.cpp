@@ -20,6 +20,7 @@
 #include "../Presentation/ViewSettingsBinder.h"
 #include "../Presentation/WindowStateGuard.h"
 #include "ColorSwatch.h"
+#include "ViewSettingsDialog.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_unique<Ui::MainWindow>()) {
     ui->setupUi(this);
@@ -62,20 +63,26 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
     // RAII restore/sync of window geometry and dock layout
     m_windowStateGuard = std::make_unique<WindowStateGuard>(this);
 
-    // Bind all view-related settings and controls in one place
-    m_viewSettingsBinder = std::make_unique<ViewSettingsBinder>(
-        m_renderView,
-        ui->viewSettingsDock,
-        ui->actionViewSettings,
-        findChild<QCheckBox*>("chkShowPoints"),
-        findChild<QCheckBox*>("chkShowMesh"),
-        findChild<QCheckBox*>("chkWireframe"),
-        findChild<PointSizeControlWidget*>("pointSizeControl"),
-        findChild<ColorSwatch*>("swatchPointColor"),
-        findChild<ColorSwatch*>("swatchMeshColor"),
-        this
-    );
-    m_viewSettingsBinder->initialize();
+    // View Settings as separate dialog
+    if (ui->actionViewSettings) {
+        ui->actionViewSettings->setChecked(false);
+        connect(ui->actionViewSettings, &QAction::toggled, this, [this](bool on){
+            if (!m_viewSettingsDialog) {
+                m_viewSettingsDialog = new ViewSettingsDialog(m_renderView, this);
+                // When dialog closes, uncheck the action
+                connect(m_viewSettingsDialog, &QDialog::finished, this, [this](int){
+                    if (ui && ui->actionViewSettings) ui->actionViewSettings->setChecked(false);
+                });
+            }
+            if (on) {
+                m_viewSettingsDialog->show();
+                m_viewSettingsDialog->raise();
+                m_viewSettingsDialog->activateWindow();
+            } else if (m_viewSettingsDialog) {
+                m_viewSettingsDialog->hide();
+            }
+        });
+    }
 }
 
 MainWindow::~MainWindow() = default;

@@ -50,6 +50,9 @@ add_executable(PointToMesh
     src/UI/mainwindow.ui
     src/UI/LogPanel.cpp
     src/UI/LogPanel.h
+    src/UI/ViewSettingsDialog.cpp
+    src/UI/ViewSettingsDialog.h
+    src/UI/ViewSettingsDialog.ui
     src/Rendering/RenderView.cpp
     src/Rendering/RenderView.h
     src/Rendering/Camera.cpp
