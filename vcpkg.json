@@ -4,8 +4,11 @@
   "version-string": "0.1.0",
   "dependencies": [
     "cgal",
-    "qt",
-    "eigen3"
-  ],
-  "builtin-baseline": "1a7377e3691bd7c6d4d71e2008d7caacf818742e"
+    "eigen3",
+    {
+      "name": "qtbase",
+      "default-features": false,
+      "features": [ "gui", "widgets", "opengl" ]
+    }
+  ]
 }
