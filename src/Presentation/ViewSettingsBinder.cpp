@@ -2,13 +2,12 @@
 #include <QDockWidget>
 #include <QAction>
 #include <QCheckBox>
-#include <QPushButton>
-#include <QColorDialog>
-#include <QColor>
-#include <algorithm>
 #include "SettingsManager.h"
 #include "../Rendering/RenderView.h"
 #include "../UI/PointSizeControlWidget.h"
+#include "../UI/ColorSwatch.h"
+#include <algorithm>
+#include <QColor>
 
 namespace {
 static inline QColor toColor(const QVector3D& v) {
@@ -16,13 +15,6 @@ static inline QColor toColor(const QVector3D& v) {
 }
 static inline QVector3D toVec3(const QColor& c) {
     return QVector3D(c.redF(), c.greenF(), c.blueF());
-}
-static inline void setButtonSwatch(QPushButton* btn, const QColor& c) {
-    if (!btn) return;
-    btn->setText(QString("%1, %2, %3").arg(int(c.redF()*255)).arg(int(c.greenF()*255)).arg(int(c.blueF()*255)));
-    btn->setStyleSheet(QString("QPushButton{ background-color: %1; color: %2; }")
-                       .arg(c.name())
-                       .arg(c.lightnessF() < 0.5 ? "white" : "black"));
 }
 }
 
@@ -33,12 +25,12 @@ ViewSettingsBinder::ViewSettingsBinder(RenderView* view,
                                        QCheckBox* chkShowMesh,
                                        QCheckBox* chkWireframe,
                                        PointSizeControlWidget* pointSizeWidget,
-                                       QPushButton* btnPointColor,
-                                       QPushButton* btnMeshColor,
+                                       ColorSwatch* swatchPointColor,
+                                       ColorSwatch* swatchMeshColor,
                                        QObject* parent)
     : QObject(parent), m_view(view), m_dock(viewSettingsDock), m_action(viewSettingsAction),
       m_chkPoints(chkShowPoints), m_chkMesh(chkShowMesh), m_chkWire(chkWireframe), m_psc(pointSizeWidget),
-      m_btnPointColor(btnPointColor), m_btnMeshColor(btnMeshColor) {}
+      m_swatchPoint(swatchPointColor), m_swatchMesh(swatchMeshColor) {}
 
 void ViewSettingsBinder::initialize() {
     // Sync action <-> dock visibility
@@ -96,16 +88,13 @@ void ViewSettingsBinder::initialize() {
         });
     }
 
-    // Colors
-    if (m_btnPointColor && m_view) {
-        setButtonSwatch(m_btnPointColor, toColor(rs.pointColor));
-        QObject::connect(m_btnPointColor, &QPushButton::clicked, this, [this](){
+    // Colors via ColorSwatch widgets
+    if (m_swatchPoint && m_view) {
+        m_swatchPoint->setDialogTitle(tr("Choose Point Color"));
+        m_swatchPoint->setColor(toColor(rs.pointColor));
+        QObject::connect(m_swatchPoint, &ColorSwatch::colorChanged, this, [this](const QColor& c){
             RenderSettings cur = SettingsManager::instance().loadRenderSettings();
-            const QColor start = toColor(cur.pointColor);
-            QColor chosen = QColorDialog::getColor(start, m_btnPointColor, tr("Choose Point Color"), QColorDialog::ShowAlphaChannel);
-            if (!chosen.isValid()) return;
-            setButtonSwatch(m_btnPointColor, chosen);
-            cur.pointColor = toVec3(chosen);
+            cur.pointColor = toVec3(c);
             SettingsManager::instance().saveRenderSettings(cur);
             if (m_view) m_view->setPointColor(cur.pointColor);
         });
@@ -113,15 +102,12 @@ void ViewSettingsBinder::initialize() {
         m_view->setPointColor(rs.pointColor);
     }
 
-    if (m_btnMeshColor && m_view) {
-        setButtonSwatch(m_btnMeshColor, toColor(rs.meshColor));
-        QObject::connect(m_btnMeshColor, &QPushButton::clicked, this, [this](){
+    if (m_swatchMesh && m_view) {
+        m_swatchMesh->setDialogTitle(tr("Choose Mesh Color"));
+        m_swatchMesh->setColor(toColor(rs.meshColor));
+        QObject::connect(m_swatchMesh, &ColorSwatch::colorChanged, this, [this](const QColor& c){
             RenderSettings cur = SettingsManager::instance().loadRenderSettings();
-            const QColor start = toColor(cur.meshColor);
-            QColor chosen = QColorDialog::getColor(start, m_btnMeshColor, tr("Choose Mesh Color"), QColorDialog::ShowAlphaChannel);
-            if (!chosen.isValid()) return;
-            setButtonSwatch(m_btnMeshColor, chosen);
-            cur.meshColor = toVec3(chosen);
+            cur.meshColor = toVec3(c);
             SettingsManager::instance().saveRenderSettings(cur);
             if (m_view) m_view->setMeshColor(cur.meshColor);
         });

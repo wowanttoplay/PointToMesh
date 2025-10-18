@@ -43,6 +43,8 @@ add_executable(PointToMesh
     main.cpp
     src/UI/PointSizeControlWidget.cpp
     src/UI/PointSizeControlWidget.h
+    src/UI/ColorSwatch.cpp
+    src/UI/ColorSwatch.h
     src/UI/mainwindow.cpp
     src/UI/mainwindow.h
     src/UI/mainwindow.ui

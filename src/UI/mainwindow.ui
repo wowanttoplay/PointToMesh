@@ -112,18 +112,10 @@
       <widget class="PointSizeControlWidget" name="pointSizeControl"/>
      </item>
      <item>
-      <widget class="QPushButton" name="btnPointColor">
-       <property name="text">
-        <string>Point Color</string>
-       </property>
-      </widget>
+      <widget class="ColorSwatch" name="swatchPointColor"/>
      </item>
      <item>
-      <widget class="QPushButton" name="btnMeshColor">
-       <property name="text">
-        <string>Mesh Color</string>
-       </property>
-      </widget>
+      <widget class="ColorSwatch" name="swatchMeshColor"/>
      </item>
     </layout>
    </widget>
@@ -165,6 +157,11 @@
    <class>PointSizeControlWidget</class>
    <extends>QWidget</extends>
    <header>src/UI/PointSizeControlWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ColorSwatch</class>
+   <extends>QWidget</extends>
+   <header>src/UI/ColorSwatch.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
