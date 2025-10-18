@@ -89,7 +89,10 @@ void RenderView::paintGL() {
         m_renderer.updateMesh(m);
     }
 
-    m_renderer.draw(m_camera, m_cfg, size());
+    // Use framebuffer pixel size to account for high-DPI displays
+    const qreal dpr = devicePixelRatioF();
+    const QSize pixelSize(qRound(width() * dpr), qRound(height() * dpr));
+    m_renderer.draw(m_camera, m_cfg, pixelSize);
 }
 
 void RenderView::mousePressEvent(QMouseEvent* e) {
