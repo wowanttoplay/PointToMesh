@@ -1,5 +1,5 @@
 //
-// Created by 范杰 on 2025/10/16.
+// Created by Fan Jie on 2025/10/16.
 //
 
 #ifndef POINTTOMESH_MAINWINDOW_H

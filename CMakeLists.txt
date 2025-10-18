@@ -91,7 +91,7 @@ target_link_libraries(PointToMesh PRIVATE
 )
 
 if (WIN32)
-    # 在常见的 vcpkg 布局下定位 windeployqt
+    # Locate windeployqt within vcpkg install paths on Windows
     find_program(WINDEPLOYQT_EXECUTABLE
         NAMES windeployqt.exe
         HINTS
@@ -111,18 +111,18 @@ if (WIN32)
     endif()
 endif()
 
-# 仅在 Windows 下：把 <build>/vcpkg_installed/<triplet>/debug 合并到根前缀
+# On Windows, merge <build>/vcpkg_installed/<triplet>/debug into the root prefix
 if (WIN32)
     set(_vcpkg_prefix "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}")
 
-    # 生成一个按配置执行的复制脚本（仅 Debug 会实际复制）
+        # Generate a CMake script that performs the copy; actual copying happens only for Debug
     set(_merge_dbg_script "${CMAKE_CURRENT_BINARY_DIR}/merge_vcpkg_debug_into_root_$<CONFIG>.cmake")
     file(GENERATE OUTPUT "${_merge_dbg_script}" CONTENT "
 if (\"$<CONFIG>\" STREQUAL \"Debug\")
   set(_src \"${_vcpkg_prefix}/debug\")
   set(_dst \"${_vcpkg_prefix}\")
   if (EXISTS \"\${_src}\")
-    # 先创建目录，再逐文件 copy_if_different
+        # Create directories first, then copy files using copy_if_different
     file(GLOB_RECURSE _entries RELATIVE \"\${_src}\" \"\${_src}/*\")
     foreach(rel IN LISTS _entries)
       set(_sp \"\${_src}/\${rel}\")
@@ -139,7 +139,7 @@ if (\"$<CONFIG>\" STREQUAL \"Debug\")
 endif()
 ")
 
-    # 在 VS 生成器下使用 PRE_BUILD，保证复制发生在构建开始前（windeployqt 仍在 POST_BUILD）
+        # In Visual Studio builds, use PRE_BUILD to ensure the merge runs before compilation; keep windeployqt as POST_BUILD
     add_custom_command(TARGET PointToMesh PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -P $<SHELL_PATH:${_merge_dbg_script}>
         COMMENT "Merging vcpkg debug tree into ${_vcpkg_prefix} (skip identical files) for $<CONFIG>"
