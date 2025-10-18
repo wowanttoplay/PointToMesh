@@ -8,8 +8,8 @@
 #include <algorithm>
 
 RenderView::RenderView(QWidget* parent) : QOpenGLWidget(parent) {
-    // Reasonable defaults
-    m_cfg.pointSize = 3.0f;
+    // Initialize from persisted settings so colors/toggles apply at startup
+    m_cfg = SettingsManager::instance().loadRenderSettings();
 }
 
 void RenderView::setPointCloud(PointCloudPtr cloud) {
