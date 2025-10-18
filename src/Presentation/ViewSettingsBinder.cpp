@@ -90,6 +90,7 @@ void ViewSettingsBinder::initialize() {
 
     // Colors via ColorSwatch widgets
     if (m_swatchPoint && m_view) {
+        m_swatchPoint->setLabel(tr("Point Color"));
         m_swatchPoint->setDialogTitle(tr("Choose Point Color"));
         m_swatchPoint->setColor(toColor(rs.pointColor));
         QObject::connect(m_swatchPoint, &ColorSwatch::colorChanged, this, [this](const QColor& c){
@@ -103,6 +104,7 @@ void ViewSettingsBinder::initialize() {
     }
 
     if (m_swatchMesh && m_view) {
+        m_swatchMesh->setLabel(tr("Mesh Color"));
         m_swatchMesh->setDialogTitle(tr("Choose Mesh Color"));
         m_swatchMesh->setColor(toColor(rs.meshColor));
         QObject::connect(m_swatchMesh, &ColorSwatch::colorChanged, this, [this](const QColor& c){
