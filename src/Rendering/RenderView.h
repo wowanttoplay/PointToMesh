@@ -3,6 +3,8 @@
 #include <QMutex>
 #include <QPoint>
 #include <algorithm>
+#include <QTimer>
+#include <QElapsedTimer>
 #include "../Model/Geometry.h"
 #include "../Settings/SettingsManager.h"
 #include "Camera.h"
@@ -39,6 +41,11 @@ protected:
     void mousePressEvent(QMouseEvent* e) override;
     void mouseMoveEvent(QMouseEvent* e) override;
     void wheelEvent(QWheelEvent* e) override;
+    void keyPressEvent(QKeyEvent* e) override;
+    void keyReleaseEvent(QKeyEvent* e) override;
+
+private slots:
+    void onMoveTick();
 
 private:
     // Data (copied snapshots for bounds and uploads)
@@ -58,6 +65,12 @@ private:
     QPoint m_lastPos;
     bool m_leftDown {false};
     bool m_rightDown {false};
+
+    // Smooth movement state
+    QTimer m_moveTimer;
+    QElapsedTimer m_elapsed;
+    bool m_keyW{false}, m_keyA{false}, m_keyS{false}, m_keyD{false};
+    bool m_shiftDown{false};
 
     // Helpers
     static void computeBounds(const PointCloudPtr& cloud, const MeshPtr& mesh, QVector3D& minP, QVector3D& maxP);

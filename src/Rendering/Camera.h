@@ -22,6 +22,7 @@ public:
     void orbit(float dx, float dy);    // dx,dy in pixels normalized by widget size
     void zoom(float delta);            // delta: wheel steps (positive = zoom in)
     void pan(float dx, float dy);      // screen-space pan
+    void moveHorizontal(float forward, float right); // Move along horizontal forward/right directions (ignores pitch). Amounts are normalized like pan.
 
     QVector3D position() const;
 
@@ -35,4 +36,3 @@ private:
     float m_far {1000.0f};
     bool  m_perspective {true};
 };
-

@@ -55,6 +55,15 @@ void Camera::pan(float dx, float dy) {
     m_target += (-dx * scale) * right + (dy * scale) * up;
 }
 
+void Camera::moveHorizontal(float forward, float rightAmt) {
+    const float yawRad = qDegreesToRadians(m_yaw);
+    // Horizontal view basis: forward along view direction projected to XZ, right is screen-right
+    const QVector3D fwd(-qCos(yawRad), 0.0f, -qSin(yawRad));
+    const QVector3D right(qSin(yawRad), 0.0f, -qCos(yawRad));
+    const float scale = m_distance * 0.1f; // step size proportional to distance
+    m_target += (forward * scale) * fwd + (rightAmt * scale) * right;
+}
+
 QVector3D Camera::position() const {
     const float yawRad = qDegreesToRadians(m_yaw);
     const float pitchRad = qDegreesToRadians(m_pitch);
@@ -63,4 +72,3 @@ QVector3D Camera::position() const {
     const float cz = m_distance * qCos(pitchRad) * qSin(yawRad);
     return m_target + QVector3D(cx, cy, cz);
 }
-

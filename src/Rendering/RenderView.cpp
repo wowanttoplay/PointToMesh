@@ -4,10 +4,16 @@
 #include <QOpenGLContext>
 #include <QSurfaceFormat>
 #include <algorithm>
+#include <QKeyEvent>
 
 RenderView::RenderView(QWidget* parent) : QOpenGLWidget(parent) {
     // Initialize from persisted settings so colors/toggles apply at startup
     m_cfg = SettingsManager::instance().loadRenderSettings();
+    // Receive keyboard focus for WASD controls
+    setFocusPolicy(Qt::StrongFocus);
+    // Smooth movement timer setup
+    m_moveTimer.setTimerType(Qt::PreciseTimer);
+    connect(&m_moveTimer, &QTimer::timeout, this, &RenderView::onMoveTick);
 }
 
 void RenderView::setPointCloud(PointCloudPtr cloud) {
@@ -97,6 +103,8 @@ void RenderView::mousePressEvent(QMouseEvent* e) {
     m_lastPos = e->pos();
     if (e->button() == Qt::LeftButton) m_leftDown = true;
     if (e->button() == Qt::RightButton || e->button() == Qt::MiddleButton) m_rightDown = true;
+    // Ensure we receive subsequent key events
+    if (!hasFocus()) setFocus(Qt::MouseFocusReason);
 }
 
 void RenderView::mouseMoveEvent(QMouseEvent* e) {
@@ -127,4 +135,79 @@ void RenderView::wheelEvent(QWheelEvent* e) {
         update();
     }
     e->accept();
+}
+
+void RenderView::keyPressEvent(QKeyEvent* e) {
+    if (e->isAutoRepeat()) { e->accept(); return; }
+    bool prevMoving = (m_keyW || m_keyA || m_keyS || m_keyD);
+
+    switch (e->key()) {
+        case Qt::Key_W: m_keyW = true; break;
+        case Qt::Key_S: m_keyS = true; break;
+        case Qt::Key_A: m_keyA = true; break;
+        case Qt::Key_D: m_keyD = true; break;
+        case Qt::Key_Shift: m_shiftDown = true; break;
+        default: QOpenGLWidget::keyPressEvent(e); return;
+    }
+
+    const bool nowMoving = (m_keyW || m_keyA || m_keyS || m_keyD);
+    if (nowMoving && !prevMoving) {
+        m_elapsed.restart();
+        m_moveTimer.start(0); // as fast as possible
+    }
+    e->accept();
+}
+
+void RenderView::keyReleaseEvent(QKeyEvent* e) {
+    if (e->isAutoRepeat()) { e->accept(); return; }
+
+    switch (e->key()) {
+        case Qt::Key_W: m_keyW = false; break;
+        case Qt::Key_S: m_keyS = false; break;
+        case Qt::Key_A: m_keyA = false; break;
+        case Qt::Key_D: m_keyD = false; break;
+        case Qt::Key_Shift: m_shiftDown = false; break;
+        default: QOpenGLWidget::keyReleaseEvent(e); return;
+    }
+
+    if (!(m_keyW || m_keyA || m_keyS || m_keyD)) {
+        m_moveTimer.stop();
+        m_elapsed.invalidate();
+    }
+    e->accept();
+}
+
+void RenderView::onMoveTick() {
+    // dt in seconds
+    float dt = 0.0f;
+    if (!m_elapsed.isValid()) {
+        m_elapsed.restart();
+        return; // wait for next tick to have dt
+    }
+    dt = static_cast<float>(m_elapsed.restart()) / 1000.0f;
+
+    // Directions
+    float fwd = (m_keyW ? 1.0f : 0.0f) + (m_keyS ? -1.0f : 0.0f);
+    float right = (m_keyD ? 1.0f : 0.0f) + (m_keyA ? -1.0f : 0.0f);
+
+    if (fwd == 0.0f && right == 0.0f) {
+        // No movement keys held; stop timer to save CPU
+        m_moveTimer.stop();
+        m_elapsed.invalidate();
+        return;
+    }
+
+    // Normalize diagonal speed
+    if (fwd != 0.0f && right != 0.0f) {
+        const float invSqrt2 = 0.70710678f;
+        fwd *= invSqrt2;
+        right *= invSqrt2;
+    }
+
+    // Base speed in normalized units per second (scaled again in Camera::moveHorizontal)
+    float speed = 3.0f; // tweak to taste
+    if (m_shiftDown) speed *= 3.0f;
+
+    m_camera.moveHorizontal(fwd * speed * dt, right * speed * dt);
+    update();
 }
