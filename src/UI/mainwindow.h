@@ -39,6 +39,9 @@ private:
     QPointer<PointCloudController> m_controller {nullptr};
     std::unique_ptr<WindowStateGuard> m_windowStateGuard; // RAII for geometry/state
     QPointer<ViewSettingsDialog> m_viewSettingsDialog {nullptr}; // Separate dialog for view settings
+
+private:
+    void ConnectViewSettings();
 };
 
 

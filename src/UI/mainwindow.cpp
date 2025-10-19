@@ -17,6 +17,7 @@
 #include "../Presentation/WindowStateGuard.h"
 #include "ViewSettingsDialog.h"
 
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_unique<Ui::MainWindow>()) {
     ui->setupUi(this);
 
@@ -59,6 +60,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
     m_windowStateGuard = std::make_unique<WindowStateGuard>(this);
 
     // View Settings as separate dialog
+    ConnectViewSettings();
+}
+
+MainWindow::~MainWindow() = default;
+
+void MainWindow::ConnectViewSettings() {
     if (ui->actionViewSettings) {
         ui->actionViewSettings->setChecked(false);
         connect(ui->actionViewSettings, &QAction::toggled, this, [this](bool on){
@@ -79,5 +86,3 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
         });
     }
 }
-
-MainWindow::~MainWindow() = default;
