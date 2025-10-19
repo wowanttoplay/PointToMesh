@@ -15,6 +15,7 @@ static constexpr const char* kKeyPointSize  = "pointSize";
 static constexpr const char* kKeyMeshColor  = "meshColor";   // QVariantList [r,g,b]
 static constexpr const char* kKeyPointColor = "pointColor";  // QVariantList [r,g,b]
 static constexpr const char* kKeyWireColor  = "wireColor";   // QVariantList [r,g,b]
+static constexpr const char* kKeyCameraSpeed = "cameraSpeed"; // double
 
 static inline QVariantList toVarList(const QVector3D& v) {
     return QVariantList{ v.x(), v.y(), v.z() };
@@ -59,6 +60,7 @@ RenderSettings SettingsManager::loadRenderSettings() const {
     rs.meshColor  = toVec3(s.value(kKeyMeshColor),  QVector3D(0.85f, 0.85f, 0.9f));
     rs.pointColor = toVec3(s.value(kKeyPointColor), QVector3D(0.2f, 0.8f, 0.3f));
     rs.wireColor  = toVec3(s.value(kKeyWireColor),  QVector3D(0.1f, 0.1f, 0.1f));
+    rs.cameraSpeed = s.value(kKeyCameraSpeed, 3.0).toDouble();
     s.endGroup();
     return rs;
 }
@@ -73,6 +75,7 @@ void SettingsManager::saveRenderSettings(const RenderSettings& rs) const {
     s.setValue(kKeyMeshColor,  toVarList(rs.meshColor));
     s.setValue(kKeyPointColor, toVarList(rs.pointColor));
     s.setValue(kKeyWireColor,  toVarList(rs.wireColor));
+    s.setValue(kKeyCameraSpeed, rs.cameraSpeed);
     s.endGroup();
 }
 

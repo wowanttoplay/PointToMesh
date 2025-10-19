@@ -22,6 +22,7 @@ ViewSettingsDialog::ViewSettingsDialog(RenderView* view, QWidget* parent)
         ui->swatchPointColor,
         ui->swatchMeshColor,
         ui->swatchWireColor,
+        ui->spinCameraSpeed,
         this
     );
     m_binder->initialize();

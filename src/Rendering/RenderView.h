@@ -28,6 +28,7 @@ public slots:
     void setMeshColor(const QVector3D& c) { m_cfg.meshColor = c; update(); }
     void setPointColor(const QVector3D& c) { m_cfg.pointColor = c; update(); }
     void setWireColor(const QVector3D& c) { m_cfg.wireColor = c; update(); }
+    void setCameraSpeed(float v) { m_cfg.cameraSpeed = std::clamp(v, 0.01f, 1000.0f); }
 
 public:
     float pointSize() const { return static_cast<float>(m_cfg.pointSize); }
@@ -70,6 +71,7 @@ private:
     QTimer m_moveTimer;
     QElapsedTimer m_elapsed;
     bool m_keyW{false}, m_keyA{false}, m_keyS{false}, m_keyD{false};
+    bool m_keyQ{false}, m_keyE{false};
     bool m_shiftDown{false};
 
     // Helpers

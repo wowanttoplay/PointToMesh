@@ -61,6 +61,36 @@
     </widget>
    </item>
    <item>
+    <layout class="QHBoxLayout" name="horizontalLayoutCameraSpeed">
+     <item>
+      <widget class="QLabel" name="labelCameraSpeed">
+       <property name="text">
+        <string>Camera Speed</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDoubleSpinBox" name="spinCameraSpeed">
+       <property name="minimum">
+        <double>0.01</double>
+       </property>
+       <property name="maximum">
+        <double>10.0</double>
+       </property>
+       <property name="singleStep">
+        <double>0.1</double>
+       </property>
+       <property name="decimals">
+        <number>2</number>
+       </property>
+       <property name="value">
+        <double>3.0</double>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="standardButtons">
       <set>QDialogButtonBox::Close</set>

@@ -139,18 +139,20 @@ void RenderView::wheelEvent(QWheelEvent* e) {
 
 void RenderView::keyPressEvent(QKeyEvent* e) {
     if (e->isAutoRepeat()) { e->accept(); return; }
-    bool prevMoving = (m_keyW || m_keyA || m_keyS || m_keyD);
+    bool prevMoving = (m_keyW || m_keyA || m_keyS || m_keyD || m_keyQ || m_keyE);
 
     switch (e->key()) {
         case Qt::Key_W: m_keyW = true; break;
         case Qt::Key_S: m_keyS = true; break;
         case Qt::Key_A: m_keyA = true; break;
         case Qt::Key_D: m_keyD = true; break;
+        case Qt::Key_Q: m_keyQ = true; break;
+        case Qt::Key_E: m_keyE = true; break;
         case Qt::Key_Shift: m_shiftDown = true; break;
         default: QOpenGLWidget::keyPressEvent(e); return;
     }
 
-    const bool nowMoving = (m_keyW || m_keyA || m_keyS || m_keyD);
+    const bool nowMoving = (m_keyW || m_keyA || m_keyS || m_keyD || m_keyQ || m_keyE);
     if (nowMoving && !prevMoving) {
         m_elapsed.restart();
         m_moveTimer.start(0); // as fast as possible
@@ -166,11 +168,13 @@ void RenderView::keyReleaseEvent(QKeyEvent* e) {
         case Qt::Key_S: m_keyS = false; break;
         case Qt::Key_A: m_keyA = false; break;
         case Qt::Key_D: m_keyD = false; break;
+        case Qt::Key_Q: m_keyQ = false; break;
+        case Qt::Key_E: m_keyE = false; break;
         case Qt::Key_Shift: m_shiftDown = false; break;
         default: QOpenGLWidget::keyReleaseEvent(e); return;
     }
 
-    if (!(m_keyW || m_keyA || m_keyS || m_keyD)) {
+    if (!(m_keyW || m_keyA || m_keyS || m_keyD || m_keyQ || m_keyE)) {
         m_moveTimer.stop();
         m_elapsed.invalidate();
     }
@@ -189,25 +193,27 @@ void RenderView::onMoveTick() {
     // Directions
     float fwd = (m_keyW ? 1.0f : 0.0f) + (m_keyS ? -1.0f : 0.0f);
     float right = (m_keyD ? 1.0f : 0.0f) + (m_keyA ? -1.0f : 0.0f);
+    float up = (m_keyQ ? 1.0f : 0.0f) + (m_keyE ? -1.0f : 0.0f);
 
-    if (fwd == 0.0f && right == 0.0f) {
+    if (fwd == 0.0f && right == 0.0f && up == 0.0f) {
         // No movement keys held; stop timer to save CPU
         m_moveTimer.stop();
         m_elapsed.invalidate();
         return;
     }
 
-    // Normalize diagonal speed
-    if (fwd != 0.0f && right != 0.0f) {
-        const float invSqrt2 = 0.70710678f;
-        fwd *= invSqrt2;
-        right *= invSqrt2;
+    // Normalize combined speed so diagonals are not faster
+    const float lenSq = fwd*fwd + right*right + up*up;
+    if (lenSq > 1.0f) {
+        const float invLen = 1.0f / std::sqrt(lenSq);
+        fwd *= invLen; right *= invLen; up *= invLen;
     }
 
-    // Base speed in normalized units per second (scaled again in Camera::moveHorizontal)
-    float speed = 3.0f; // tweak to taste
+    // Base speed in normalized units per second from settings (scaled again in Camera movement)
+    float speed = std::max(0.01f, m_cfg.cameraSpeed);
     if (m_shiftDown) speed *= 3.0f;
 
     m_camera.moveHorizontal(fwd * speed * dt, right * speed * dt);
+    if (up != 0.0f) m_camera.moveVertical(up * speed * dt);
     update();
 }

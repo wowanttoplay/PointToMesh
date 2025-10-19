@@ -64,6 +64,12 @@ void Camera::moveHorizontal(float forward, float rightAmt) {
     m_target += (forward * scale) * fwd + (rightAmt * scale) * right;
 }
 
+void Camera::moveVertical(float up) {
+    const QVector3D upVec(0.0f, 1.0f, 0.0f);
+    const float scale = m_distance * 0.1f; // match horizontal scaling
+    m_target += (up * scale) * upVec;
+}
+
 QVector3D Camera::position() const {
     const float yawRad = qDegreesToRadians(m_yaw);
     const float pitchRad = qDegreesToRadians(m_pitch);

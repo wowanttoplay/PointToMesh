@@ -12,6 +12,8 @@ struct RenderSettings {
     QVector3D meshColor {0.85f, 0.85f, 0.9f};
     QVector3D pointColor {0.2f, 0.8f, 0.3f};
     QVector3D wireColor {0.1f, 0.1f, 0.1f};
+    // Camera interaction
+    float cameraSpeed {3.0f};
 };
 
 class SettingsManager {

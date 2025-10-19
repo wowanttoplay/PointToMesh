@@ -23,6 +23,7 @@ public:
     void zoom(float delta);            // delta: wheel steps (positive = zoom in)
     void pan(float dx, float dy);      // screen-space pan
     void moveHorizontal(float forward, float right); // Move along horizontal forward/right directions (ignores pitch). Amounts are normalized like pan.
+    void moveVertical(float up);       // Move along world up/down, amount normalized similar to moveHorizontal
 
     QVector3D position() const;
 
