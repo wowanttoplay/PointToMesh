@@ -1,34 +1,36 @@
 #pragma once
 #include <QOpenGLWidget>
-#include <QMutex>
+#include <QOpenGLFunctions>
+#include <QThread>
 #include <QPoint>
 #include <algorithm>
 #include "../Model/Geometry.h"
 #include "../Settings/SettingsManager.h"
-#include "Camera.h"
-#include "ShaderLibrary.h"
-#include "Renderer.h"
 
-class RenderView : public QOpenGLWidget {
+class RenderWorker;
+class QOpenGLTextureBlitter;
+
+class RenderView : public QOpenGLWidget, protected QOpenGLFunctions {
     Q_OBJECT
 public:
     explicit RenderView(QWidget* parent = nullptr);
+    ~RenderView() override;
 
 public slots:
     void setPointCloud(PointCloudPtr cloud);
     void setMesh(MeshPtr mesh);
 
-    // Display toggles
-    void setShowPoints(bool on) { m_cfg.showPoints = on; update(); }
-    void setShowMesh(bool on) { m_cfg.showMesh = on; update(); }
-    void setWireframe(bool on) { m_cfg.wireframe = on; update(); }
-    void setPointSize(float s) { m_cfg.pointSize = static_cast<int>(std::clamp(s, 1.0f, 20.0f)); update(); }
-    void setMeshColor(const QVector3D& c) { m_cfg.meshColor = c; update(); }
-    void setPointColor(const QVector3D& c) { m_cfg.pointColor = c; update(); }
-    void setWireColor(const QVector3D& c) { m_cfg.wireColor = c; update(); }
+    // Display toggles - forward to worker
+    void setShowPoints(bool on);
+    void setShowMesh(bool on);
+    void setWireframe(bool on);
+    void setPointSize(float s);
+    void setMeshColor(const QVector3D& c);
+    void setPointColor(const QVector3D& c);
+    void setWireColor(const QVector3D& c);
 
 public:
-    float pointSize() const { return static_cast<float>(m_cfg.pointSize); }
+    float pointSize() const { return m_pointSize; }
     void adjustPointSize(float delta) { setPointSize(pointSize() + delta); }
 
 protected:
@@ -40,20 +42,21 @@ protected:
     void mouseMoveEvent(QMouseEvent* e) override;
     void wheelEvent(QWheelEvent* e) override;
 
+private slots:
+    void onWorkerInitialized();
+    void onWorkerError(const QString& message);
+
 private:
-    // Data (copied snapshots for bounds and uploads)
-    QMutex m_mutex;
-    PointCloudPtr m_cloud;
-    MeshPtr m_mesh;
-    bool m_pointsDirty {false};
-    bool m_meshDirty {false};
-
-    // Rendering
-    RenderSettings m_cfg;
-    Camera m_camera;
-    ShaderLibrary m_shaders;
-    Renderer m_renderer;
-
+    // Rendering thread and worker
+    QThread* m_renderThread;
+    RenderWorker* m_renderWorker;
+    
+    // Texture blitter for displaying worker's output
+    QOpenGLTextureBlitter* m_blitter;
+    
+    // Cached settings
+    float m_pointSize;
+    
     // Interaction state
     QPoint m_lastPos;
     bool m_leftDown {false};
@@ -61,5 +64,5 @@ private:
 
     // Helpers
     static void computeBounds(const PointCloudPtr& cloud, const MeshPtr& mesh, QVector3D& minP, QVector3D& maxP);
-    void refitCameraToData();
+    void refitCameraToData(const PointCloudPtr& cloud, const MeshPtr& mesh);
 };

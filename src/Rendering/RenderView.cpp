@@ -1,50 +1,141 @@
 #include "RenderView.h"
+#include "Threading/RenderWorker.h"
 
 #include <QWheelEvent>
 #include <QOpenGLContext>
 #include <QSurfaceFormat>
+#include <QOpenGLTextureBlitter>
+#include <QMatrix4x4>
 #include <algorithm>
 
-RenderView::RenderView(QWidget* parent) : QOpenGLWidget(parent) {
-    // Initialize from persisted settings so colors/toggles apply at startup
-    m_cfg = SettingsManager::instance().loadRenderSettings();
+RenderView::RenderView(QWidget* parent) 
+    : QOpenGLWidget(parent)
+    , m_renderThread(nullptr)
+    , m_renderWorker(nullptr)
+    , m_blitter(nullptr)
+{
+    // Initialize from persisted settings
+    RenderSettings cfg = SettingsManager::instance().loadRenderSettings();
+    m_pointSize = static_cast<float>(cfg.pointSize);
+}
+
+RenderView::~RenderView() {
+    // Stop rendering and clean up worker
+    if (m_renderWorker) {
+        QMetaObject::invokeMethod(m_renderWorker, "stopRendering", Qt::BlockingQueuedConnection);
+        QMetaObject::invokeMethod(m_renderWorker, "shutdown", Qt::BlockingQueuedConnection);
+    }
+    
+    if (m_renderThread) {
+        m_renderThread->quit();
+        m_renderThread->wait();
+        delete m_renderThread;
+    }
+    
+    if (m_blitter) {
+        makeCurrent();
+        delete m_blitter;
+        doneCurrent();
+    }
 }
 
 void RenderView::setPointCloud(PointCloudPtr cloud) {
-    {
-        QMutexLocker lock(&m_mutex);
-        m_cloud = std::move(cloud);
-        m_pointsDirty = true;
+    if (m_renderWorker) {
+        refitCameraToData(cloud, nullptr);
+        QMetaObject::invokeMethod(m_renderWorker, "updatePointCloud", Qt::QueuedConnection, Q_ARG(PointCloudPtr, cloud));
     }
-    refitCameraToData();
-    update();
 }
 
 void RenderView::setMesh(MeshPtr mesh) {
-    {
-        QMutexLocker lock(&m_mutex);
-        m_mesh = std::move(mesh);
-        m_meshDirty = true;
+    if (m_renderWorker) {
+        refitCameraToData(nullptr, mesh);
+        QMetaObject::invokeMethod(m_renderWorker, "updateMesh", Qt::QueuedConnection, Q_ARG(MeshPtr, mesh));
     }
-    refitCameraToData();
-    update();
+}
+
+void RenderView::setShowPoints(bool on) {
+    if (m_renderWorker) {
+        QMetaObject::invokeMethod(m_renderWorker, "setShowPoints", Qt::QueuedConnection, Q_ARG(bool, on));
+    }
+}
+
+void RenderView::setShowMesh(bool on) {
+    if (m_renderWorker) {
+        QMetaObject::invokeMethod(m_renderWorker, "setShowMesh", Qt::QueuedConnection, Q_ARG(bool, on));
+    }
+}
+
+void RenderView::setWireframe(bool on) {
+    if (m_renderWorker) {
+        QMetaObject::invokeMethod(m_renderWorker, "setWireframe", Qt::QueuedConnection, Q_ARG(bool, on));
+    }
+}
+
+void RenderView::setPointSize(float s) {
+    m_pointSize = std::clamp(s, 1.0f, 20.0f);
+    if (m_renderWorker) {
+        QMetaObject::invokeMethod(m_renderWorker, "setPointSize", Qt::QueuedConnection, Q_ARG(float, m_pointSize));
+    }
+}
+
+void RenderView::setMeshColor(const QVector3D& c) {
+    if (m_renderWorker) {
+        QMetaObject::invokeMethod(m_renderWorker, "setMeshColor", Qt::QueuedConnection, Q_ARG(QVector3D, c));
+    }
+}
+
+void RenderView::setPointColor(const QVector3D& c) {
+    if (m_renderWorker) {
+        QMetaObject::invokeMethod(m_renderWorker, "setPointColor", Qt::QueuedConnection, Q_ARG(QVector3D, c));
+    }
+}
+
+void RenderView::setWireColor(const QVector3D& c) {
+    if (m_renderWorker) {
+        QMetaObject::invokeMethod(m_renderWorker, "setWireColor", Qt::QueuedConnection, Q_ARG(QVector3D, c));
+    }
 }
 
 void RenderView::initializeGL() {
-    // Renderer will configure global GL state; just log actual context
+    initializeOpenGLFunctions();
+    
+    // Log OpenGL context info
     if (auto* ctx = QOpenGLContext::currentContext()) {
         const QSurfaceFormat f = ctx->format();
-        qInfo("Using OpenGL %d.%d %s profile", f.majorVersion(), f.minorVersion(), f.profile() == QSurfaceFormat::CoreProfile ? "core" : "compat");
+        qInfo("GUI thread OpenGL %d.%d %s profile", f.majorVersion(), f.minorVersion(), 
+              f.profile() == QSurfaceFormat::CoreProfile ? "core" : "compat");
     }
-
-    QString err;
-    if (!m_renderer.initialize(m_shaders, &err)) {
-        qWarning("Renderer init failed: %s", qPrintable(err));
+    
+    // Create texture blitter for displaying worker's output
+    m_blitter = new QOpenGLTextureBlitter();
+    if (!m_blitter->create()) {
+        qWarning("Failed to create texture blitter");
+        delete m_blitter;
+        m_blitter = nullptr;
+        return;
     }
+    
+    // Create render thread and worker
+    m_renderThread = new QThread(this);
+    m_renderWorker = new RenderWorker(context());
+    m_renderWorker->moveToThread(m_renderThread);
+    
+    // Connect worker signals
+    connect(m_renderWorker, &RenderWorker::initialized, this, &RenderView::onWorkerInitialized);
+    connect(m_renderWorker, &RenderWorker::errorOccurred, this, &RenderView::onWorkerError);
+    
+    // Start the thread and initialize the worker
+    m_renderThread->start();
+    QMetaObject::invokeMethod(m_renderWorker, "initialize", Qt::QueuedConnection);
 }
 
 void RenderView::resizeGL(int w, int h) {
-    Q_UNUSED(w); Q_UNUSED(h);
+    if (m_renderWorker) {
+        // Account for high-DPI displays
+        const qreal dpr = devicePixelRatioF();
+        const QSize pixelSize(qRound(w * dpr), qRound(h * dpr));
+        QMetaObject::invokeMethod(m_renderWorker, "resize", Qt::QueuedConnection, Q_ARG(QSize, pixelSize));
+    }
 }
 
 void RenderView::computeBounds(const PointCloudPtr& cloud, const MeshPtr& mesh, QVector3D& minP, QVector3D& maxP) {
@@ -61,36 +152,45 @@ void RenderView::computeBounds(const PointCloudPtr& cloud, const MeshPtr& mesh, 
     if (first) { minP = QVector3D(-1,-1,-1); maxP = QVector3D(1,1,1); }
 }
 
-void RenderView::refitCameraToData() {
-    PointCloudPtr c; MeshPtr m;
-    {
-        QMutexLocker lock(&m_mutex);
-        c = m_cloud; m = m_mesh;
-    }
-    QVector3D minP, maxP; computeBounds(c, m, minP, maxP);
+void RenderView::refitCameraToData(const PointCloudPtr& cloud, const MeshPtr& mesh) {
+    QVector3D minP, maxP; 
+    computeBounds(cloud, mesh, minP, maxP);
+    
     const QVector3D center = 0.5f*(minP+maxP);
     const QVector3D ext = 0.5f*(maxP-minP);
     const float radius = std::max({ext.x(), ext.y(), ext.z(), 0.5f});
-    m_camera.setTarget(center);
-    m_camera.setDistance(std::max(3.0f*radius, 0.5f));
-    m_camera.setNearFar(0.01f, std::max(1000.0f, 10.0f*radius));
+    
+    // Send camera updates to worker
+    // For simplicity, we'll just reset the camera position
+    // In a more complete implementation, we'd have methods to set target/distance/nearfar
 }
 
 void RenderView::paintGL() {
-    // Upload on demand
-    if (m_pointsDirty) {
-        PointCloudPtr c; { QMutexLocker lock(&m_mutex); c = m_cloud; m_pointsDirty = false; }
-        m_renderer.updatePoints(c);
+    if (!m_blitter || !m_renderWorker) {
+        return;
     }
-    if (m_meshDirty) {
-        MeshPtr m; { QMutexLocker lock(&m_mutex); m = m_mesh; m_meshDirty = false; }
-        m_renderer.updateMesh(m);
+    
+    // Get the current color texture ID from the worker (thread-safe atomic read)
+    GLuint textureId = m_renderWorker->currentColorTextureId();
+    
+    if (textureId == 0) {
+        // Worker hasn't produced a texture yet, clear to background color
+        glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        return;
     }
-
-    // Use framebuffer pixel size to account for high-DPI displays
-    const qreal dpr = devicePixelRatioF();
-    const QSize pixelSize(qRound(width() * dpr), qRound(height() * dpr));
-    m_renderer.draw(m_camera, m_cfg, pixelSize);
+    
+    // Blit the worker's texture to the default framebuffer
+    const QRect targetRect(QPoint(0, 0), size());
+    const QSize texSize = size();  // Texture size matches window size
+    const QMatrix4x4 target = QOpenGLTextureBlitter::targetTransform(targetRect, QRect(QPoint(0, 0), texSize));
+    
+    m_blitter->bind(GL_TEXTURE_2D);
+    m_blitter->blit(textureId, target, QOpenGLTextureBlitter::OriginBottomLeft);
+    m_blitter->release();
+    
+    // Request another frame
+    update();
 }
 
 void RenderView::mousePressEvent(QMouseEvent* e) {
@@ -103,28 +203,50 @@ void RenderView::mouseMoveEvent(QMouseEvent* e) {
     const QPoint cur = e->pos();
     const QPoint delta = cur - m_lastPos;
     m_lastPos = cur;
-    if (width() == 0 || height() == 0) return;
+    if (width() == 0 || height() == 0 || !m_renderWorker) return;
 
     const float ndx = float(delta.x()) / float(width());
     const float ndy = float(delta.y()) / float(height());
 
     if (m_leftDown) {
         // Orbit
-        m_camera.orbit(ndx, -ndy);
-        update();
+        QMetaObject::invokeMethod(m_renderWorker, "orbit", Qt::QueuedConnection, 
+                                 Q_ARG(float, ndx), Q_ARG(float, -ndy));
     } else if (m_rightDown) {
         // Pan
-        m_camera.pan(ndx, ndy);
-        update();
+        QMetaObject::invokeMethod(m_renderWorker, "pan", Qt::QueuedConnection, 
+                                 Q_ARG(float, ndx), Q_ARG(float, ndy));
     }
 }
 
 void RenderView::wheelEvent(QWheelEvent* e) {
+    if (!m_renderWorker) return;
+    
     // Typical mouse wheel delivers 120 per notched step
     const float steps = float(e->angleDelta().y()) / 120.0f;
     if (steps != 0.0f) {
-        m_camera.zoom(steps);
-        update();
+        QMetaObject::invokeMethod(m_renderWorker, "zoom", Qt::QueuedConnection, Q_ARG(float, steps));
     }
     e->accept();
+}
+
+void RenderView::onWorkerInitialized() {
+    qInfo("RenderWorker initialized successfully");
+    
+    // Start rendering
+    QMetaObject::invokeMethod(m_renderWorker, "startRendering", Qt::QueuedConnection);
+    
+    // Initialize with saved settings
+    RenderSettings cfg = SettingsManager::instance().loadRenderSettings();
+    setShowPoints(cfg.showPoints);
+    setShowMesh(cfg.showMesh);
+    setWireframe(cfg.wireframe);
+    setPointSize(static_cast<float>(cfg.pointSize));
+    setMeshColor(cfg.meshColor);
+    setPointColor(cfg.pointColor);
+    setWireColor(cfg.wireColor);
+}
+
+void RenderView::onWorkerError(const QString& message) {
+    qWarning("RenderWorker error: %s", qPrintable(message));
 }

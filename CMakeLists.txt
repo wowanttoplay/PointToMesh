@@ -54,6 +54,8 @@ add_executable(PointToMesh
     src/Rendering/Renderer.h
     src/Rendering/ShaderLibrary.cpp
     src/Rendering/ShaderLibrary.h
+    src/Rendering/Threading/RenderWorker.cpp
+    src/Rendering/Threading/RenderWorker.h
     src/Presentation/ProcessingWorker.cpp
     src/Presentation/ProcessingWorker.h
     src/Presentation/PointCloudController.cpp
