@@ -1,10 +1,8 @@
 #include "RenderView.h"
 
-#include <QMouseEvent>
 #include <QWheelEvent>
 #include <QOpenGLContext>
 #include <QSurfaceFormat>
-#include <QtMath>
 #include <algorithm>
 
 RenderView::RenderView(QWidget* parent) : QOpenGLWidget(parent) {
