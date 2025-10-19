@@ -4,20 +4,8 @@
 
 #include <QOpenGLShaderProgram>
 #include <QVector3D>
-
-namespace {
-constexpr const char* kBasicVert = R"(#version 410 core
-layout(location=0) in vec3 a_pos;
-uniform mat4 u_mvp;
-void main(){ gl_Position = u_mvp * vec4(a_pos, 1.0); }
-)";
-
-constexpr const char* kBasicFrag = R"(#version 410 core
-uniform vec3 u_color;
-out vec4 fragColor;
-void main(){ fragColor = vec4(u_color, 1.0); }
-)";
-}
+#include <QCoreApplication>
+#include <QDir>
 
 Renderer::Renderer() = default;
 Renderer::~Renderer() = default;
@@ -29,9 +17,14 @@ bool Renderer::initialize(ShaderLibrary& shaders, QString* error) {
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
 
-    // Prepare shader
+    // Load shader sources from external files under resources/shaders
+    const QString shaderDir = QCoreApplication::applicationDirPath() + "/resources/shaders";
+    const QString vertPath = shaderDir + "/basic.vert";
+    const QString fragPath = shaderDir + "/basic.frag";
+
+    // Prepare shader via Qt's addShaderFromSourceFile
     if (!shaders.get("basic")) {
-        if (!shaders.addProgram("basic", kBasicVert, kBasicFrag, error)) {
+        if (!shaders.addProgramFromFiles("basic", vertPath, fragPath, error)) {
             return false;
         }
     }

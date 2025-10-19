@@ -21,6 +21,24 @@ bool ShaderLibrary::addProgram(const QString& name, const char* vertSrc, const c
     return true;
 }
 
+bool ShaderLibrary::addProgramFromFiles(const QString& name, const QString& vertFile, const QString& fragFile, QString* error) {
+    auto prog = QSharedPointer<QOpenGLShaderProgram>::create();
+    if (!prog->addShaderFromSourceFile(QOpenGLShader::Vertex, vertFile)) {
+        if (error) *error = prog->log();
+        return false;
+    }
+    if (!prog->addShaderFromSourceFile(QOpenGLShader::Fragment, fragFile)) {
+        if (error) *error = prog->log();
+        return false;
+    }
+    if (!prog->link()) {
+        if (error) *error = prog->log();
+        return false;
+    }
+    m_programs.insert(name, prog);
+    return true;
+}
+
 QOpenGLShaderProgram* ShaderLibrary::get(const QString& name) const {
     auto it = m_programs.find(name);
     return it == m_programs.end() ? nullptr : it.value().data();

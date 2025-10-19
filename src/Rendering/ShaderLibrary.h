@@ -10,6 +10,7 @@ public:
     ~ShaderLibrary();
 
     bool addProgram(const QString& name, const char* vertSrc, const char* fragSrc, QString* error = nullptr);
+    bool addProgramFromFiles(const QString& name, const QString& vertFile, const QString& fragFile, QString* error = nullptr);
     QOpenGLShaderProgram* get(const QString& name) const;
     void clear();
 
