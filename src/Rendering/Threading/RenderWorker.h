@@ -50,6 +50,9 @@ public slots:
     void orbit(float dx, float dy);
     void pan(float dx, float dy);
     void zoom(float delta);
+    void setCameraTarget(const QVector3D& target);
+    void setCameraDistance(float distance);
+    void setCameraNearFar(float near, float far);
     
     // View settings
     void setShowPoints(bool on);

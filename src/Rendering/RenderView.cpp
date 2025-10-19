@@ -161,8 +161,11 @@ void RenderView::refitCameraToData(const PointCloudPtr& cloud, const MeshPtr& me
     const float radius = std::max({ext.x(), ext.y(), ext.z(), 0.5f});
     
     // Send camera updates to worker
-    // For simplicity, we'll just reset the camera position
-    // In a more complete implementation, we'd have methods to set target/distance/nearfar
+    if (m_renderWorker) {
+        QMetaObject::invokeMethod(m_renderWorker, "setCameraTarget", Qt::QueuedConnection, Q_ARG(QVector3D, center));
+        QMetaObject::invokeMethod(m_renderWorker, "setCameraDistance", Qt::QueuedConnection, Q_ARG(float, std::max(3.0f*radius, 0.5f)));
+        QMetaObject::invokeMethod(m_renderWorker, "setCameraNearFar", Qt::QueuedConnection, Q_ARG(float, 0.01f), Q_ARG(float, std::max(1000.0f, 10.0f*radius)));
+    }
 }
 
 void RenderView::paintGL() {

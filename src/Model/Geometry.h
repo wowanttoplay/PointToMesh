@@ -16,3 +16,8 @@ struct MeshModel {
 using PointCloudPtr = std::shared_ptr<const PointCloudModel>;
 using MeshPtr       = std::shared_ptr<const MeshModel>;
 
+// Declare metatypes for Qt's signal/slot mechanism
+#include <QMetaType>
+Q_DECLARE_METATYPE(PointCloudPtr)
+Q_DECLARE_METATYPE(MeshPtr)
+

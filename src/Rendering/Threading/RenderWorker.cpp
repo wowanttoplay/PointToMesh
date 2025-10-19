@@ -4,6 +4,7 @@
 #include "../Camera.h"
 #include <QOpenGLFramebufferObjectFormat>
 #include <QThread>
+#include <algorithm>
 
 RenderWorker::RenderWorker(QOpenGLContext* shareContext, QObject* parent)
     : QObject(parent)
@@ -178,6 +179,24 @@ void RenderWorker::pan(float dx, float dy) {
 void RenderWorker::zoom(float delta) {
     if (m_camera) {
         m_camera->zoom(delta);
+    }
+}
+
+void RenderWorker::setCameraTarget(const QVector3D& target) {
+    if (m_camera) {
+        m_camera->setTarget(target);
+    }
+}
+
+void RenderWorker::setCameraDistance(float distance) {
+    if (m_camera) {
+        m_camera->setDistance(distance);
+    }
+}
+
+void RenderWorker::setCameraNearFar(float near, float far) {
+    if (m_camera) {
+        m_camera->setNearFar(near, far);
     }
 }
 
