@@ -34,8 +34,8 @@ set(CMAKE_AUTOUIC ON)
 # Sources
 add_executable(PointToMesh
     main.cpp
-    src/UI/PointSizeControlWidget.cpp
-    src/UI/PointSizeControlWidget.h
+    src/UI/ScalarControlWidget.cpp
+    src/UI/ScalarControlWidget.h
     src/UI/ColorSwatch.cpp
     src/UI/ColorSwatch.h
     src/UI/mainwindow.cpp
@@ -71,7 +71,6 @@ add_executable(PointToMesh
 )
 
 # Add include directories
-# Add project root so includes like "src/UI/PointSizeControlWidget.h" from UIC-generated code are found
 # Also add the 'src' directory explicitly so includes like "UI/..." can be resolved via an include path.
 mark_as_advanced(Qt6_INCLUDE_DIRS)
 target_include_directories(PointToMesh PRIVATE

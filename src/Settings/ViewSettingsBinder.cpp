@@ -4,7 +4,7 @@
 #include <QCheckBox>
 #include "SettingsManager.h"
 #include "../Rendering/RenderView.h"
-#include "../UI/PointSizeControlWidget.h"
+#include "../UI/ScalarControlWidget.h"
 #include "../UI/ColorSwatch.h"
 #include <algorithm>
 #include <QColor>
@@ -24,11 +24,11 @@ ViewSettingsBinder::ViewSettingsBinder(RenderView* view,
                                        QCheckBox* chkShowPoints,
                                        QCheckBox* chkShowMesh,
                                        QCheckBox* chkWireframe,
-                                       PointSizeControlWidget* pointSizeWidget,
+                                       ScalarControlWidget* pointSizeWidget,
                                        ColorSwatch* swatchPointColor,
                                        ColorSwatch* swatchMeshColor,
                                        ColorSwatch* swatchWireColor,
-                                       PointSizeControlWidget* cameraSpeedWidget,
+                                       ScalarControlWidget* cameraSpeedWidget,
                                        QObject* parent)
     : QObject(parent), m_view(view), m_dock(viewSettingsDock), m_action(viewSettingsAction),
       m_chkPoints(chkShowPoints), m_chkMesh(chkShowMesh), m_chkWire(chkWireframe), m_psc(pointSizeWidget),
@@ -82,13 +82,14 @@ void ViewSettingsBinder::initialize() {
         // Initialize from settings and then wire changes
         const int initial = rs.pointSize;
         m_psc->setLabelText(tr("Point Size:"));
-        m_psc->setRange(1, 20);
-        m_psc->setValue(initial);
+        m_psc->setRange(1.0, 20.0, 0);
+        m_psc->setValue(static_cast<double>(initial));
         m_view->setPointSize(static_cast<float>(initial));
-        QObject::connect(m_psc, &PointSizeControlWidget::valueChanged, this, [this](int v){
-            if (m_view) m_view->setPointSize(static_cast<float>(v));
+        QObject::connect(m_psc, &ScalarControlWidget::valueChanged, this, [this](double v){
+            const int vi = static_cast<int>(std::lround(v));
+            if (m_view) m_view->setPointSize(static_cast<float>(vi));
             RenderSettings cur = SettingsManager::instance().loadRenderSettings();
-            cur.pointSize = v;
+            cur.pointSize = vi;
             SettingsManager::instance().saveRenderSettings(cur);
         });
     }
@@ -136,13 +137,13 @@ void ViewSettingsBinder::initialize() {
         m_view->setWireColor(rs.wireColor);
     }
 
-    // Camera speed via PointSizeControlWidget in double mode
+    // Camera speed via ScalarControlWidget
     if (m_cameraSpeedCtrl && m_view) {
         m_cameraSpeedCtrl->setLabelText(tr("Camera Speed:"));
-        m_cameraSpeedCtrl->setRangeDouble(0.01, 20.0, 1);
-        m_cameraSpeedCtrl->setValueDouble(rs.cameraSpeed);
+        m_cameraSpeedCtrl->setRange(0.01, 20.0, 1);
+        m_cameraSpeedCtrl->setValue(rs.cameraSpeed);
         m_view->setCameraSpeed(static_cast<float>(rs.cameraSpeed));
-        QObject::connect(m_cameraSpeedCtrl, &PointSizeControlWidget::valueChangedDouble, this, [this](double v){
+        QObject::connect(m_cameraSpeedCtrl, &ScalarControlWidget::valueChanged, this, [this](double v){
             if (m_view) m_view->setCameraSpeed(static_cast<float>(v));
             RenderSettings cur = SettingsManager::instance().loadRenderSettings();
             cur.cameraSpeed = static_cast<float>(v);

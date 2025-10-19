@@ -4,7 +4,7 @@
 class QDockWidget;
 class QAction;
 class QCheckBox;
-class PointSizeControlWidget;
+class ScalarControlWidget;
 class RenderView;
 class ColorSwatch;
 
@@ -17,11 +17,11 @@ public:
                        QCheckBox* chkShowPoints,
                        QCheckBox* chkShowMesh,
                        QCheckBox* chkWireframe,
-                       PointSizeControlWidget* pointSizeWidget,
+                       ScalarControlWidget* pointSizeWidget,
                        ColorSwatch* swatchPointColor,
                        ColorSwatch* swatchMeshColor,
                        ColorSwatch* swatchWireColor,
-                       PointSizeControlWidget* cameraSpeedWidget,
+                       ScalarControlWidget* cameraSpeedWidget,
                        QObject* parent = nullptr);
 
     void initialize();
@@ -33,9 +33,9 @@ private:
     QCheckBox* m_chkPoints {nullptr};
     QCheckBox* m_chkMesh {nullptr};
     QCheckBox* m_chkWire {nullptr};
-    PointSizeControlWidget* m_psc {nullptr};
+    ScalarControlWidget* m_psc {nullptr};
     ColorSwatch* m_swatchPoint {nullptr};
     ColorSwatch* m_swatchMesh {nullptr};
     ColorSwatch* m_swatchWire {nullptr};
-    PointSizeControlWidget* m_cameraSpeedCtrl {nullptr};
+    ScalarControlWidget* m_cameraSpeedCtrl {nullptr};
 };

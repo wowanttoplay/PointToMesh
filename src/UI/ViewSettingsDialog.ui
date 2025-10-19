@@ -37,7 +37,7 @@
     </widget>
    </item>
    <item>
-    <widget class="PointSizeControlWidget" name="pointSizeControl"/>
+    <widget class="ScalarControlWidget" name="pointSizeControl"/>
    </item>
    <item>
     <widget class="ColorSwatch" name="swatchPointColor">
@@ -61,7 +61,7 @@
     </widget>
    </item>
    <item>
-    <widget class="PointSizeControlWidget" name="cameraSpeedControl">
+    <widget class="ScalarControlWidget" name="cameraSpeedControl">
      <!-- Optional: binder will set label and range -->
     </widget>
    </item>
@@ -76,9 +76,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PointSizeControlWidget</class>
+   <class>ScalarControlWidget</class>
    <extends>QWidget</extends>
-   <header>src/UI/PointSizeControlWidget.h</header>
+   <header>src/UI/ScalarControlWidget.h</header>
   </customwidget>
   <customwidget>
    <class>ColorSwatch</class>
