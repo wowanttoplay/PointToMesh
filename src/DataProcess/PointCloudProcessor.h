@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <QMetaType>
 
 // We use CGAL types for the interface, as it's our primary library.
 // This simplifies the design, but for a truly generic library,
@@ -35,8 +36,12 @@ enum class NormalEstimationMethod {
  */
 enum class MeshGenerationMethod {
     POISSON_RECONSTRUCTION, // Default method using Poisson reconstruction
-    // Future methods like Advancing Front can be added here
+    SCALE_SPACE_RECONSTRUCTION, // CGAL Scale-Space Surface Reconstruction 3
+    ADVANCING_FRONT_RECONSTRUCTION, // CGAL Advancing Front Surface Reconstruction
 };
+
+// Make enums available to Qt meta-object system for queued connections
+Q_DECLARE_METATYPE(MeshGenerationMethod)
 
 /**
  * @class PointCloudProcessor

@@ -55,6 +55,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
     if (auto a = findChild<QAction*>("actionReconstruct")) {
         connect(a, &QAction::triggered, this, [this]{ m_controller->runReconstruction(); });
     }
+    if (auto a = findChild<QAction*>("actionReconstructPoisson")) {
+        connect(a, &QAction::triggered, this, [this]{ m_controller->runReconstructionWith(MeshGenerationMethod::POISSON_RECONSTRUCTION); });
+    }
+    if (auto a = findChild<QAction*>("actionReconstructScaleSpace")) {
+        connect(a, &QAction::triggered, this, [this]{ m_controller->runReconstructionWith(MeshGenerationMethod::SCALE_SPACE_RECONSTRUCTION); });
+    }
+    if (auto a = findChild<QAction*>("actionReconstructAdvancingFront")) {
+        connect(a, &QAction::triggered, this, [this]{ m_controller->runReconstructionWith(MeshGenerationMethod::ADVANCING_FRONT_RECONSTRUCTION); });
+    }
 
     // RAII restore/sync of window geometry and dock layout
     m_windowStateGuard = std::make_unique<WindowStateGuard>(this);

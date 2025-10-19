@@ -17,6 +17,7 @@ public:
 public slots:
     void importFromFile(const QString& path);
     void runReconstruction();
+    void runReconstructionWith(MeshGenerationMethod method);
     void exportMesh(const QString& path, bool withNormals);
 
 signals:
@@ -27,6 +28,7 @@ signals:
     // Internal to worker thread
     void workerImport(const QString& path);
     void workerReconstruct();
+    void workerReconstructWith(MeshGenerationMethod method);
     void workerExport(const QString& path, bool withNormals);
 
 private slots:
@@ -38,4 +40,3 @@ private:
     QThread m_thread;
     ProcessingWorker* m_worker {nullptr};
 };
-

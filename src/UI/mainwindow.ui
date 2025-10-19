@@ -35,6 +35,9 @@
      <string>Tools</string>
     </property>
     <addaction name="actionReconstruct"/>
+    <addaction name="actionReconstructPoisson"/>
+    <addaction name="actionReconstructScaleSpace"/>
+    <addaction name="actionReconstructAdvancingFront"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -76,6 +79,21 @@
   <action name="actionReconstruct">
    <property name="text">
     <string>Reconstruct</string>
+   </property>
+  </action>
+  <action name="actionReconstructPoisson">
+   <property name="text">
+    <string>Reconstruct (Poisson)</string>
+   </property>
+  </action>
+  <action name="actionReconstructScaleSpace">
+   <property name="text">
+    <string>Reconstruct (Scale-Space)</string>
+   </property>
+  </action>
+  <action name="actionReconstructAdvancingFront">
+   <property name="text">
+    <string>Reconstruct (Advancing Front)</string>
    </property>
   </action>
   <action name="actionViewSettings">
