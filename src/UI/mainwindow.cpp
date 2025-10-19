@@ -12,14 +12,9 @@
 #include "../DataProcess/CGALPointCloudProcessor.h"
 #include <QFileDialog>
 #include <QtGlobal>
-#include "PointSizeControlWidget.h"
-#include <QCheckBox>
 #include <QAction>
 #include <QDockWidget>
-#include "../Presentation/SettingsManager.h"
-#include "../Presentation/ViewSettingsBinder.h"
 #include "../Presentation/WindowStateGuard.h"
-#include "ColorSwatch.h"
 #include "ViewSettingsDialog.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_unique<Ui::MainWindow>()) {
