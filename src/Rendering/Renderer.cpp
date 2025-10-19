@@ -22,6 +22,7 @@ bool Renderer::initialize(ShaderLibrary& shaders, QString* error) {
     m_prog = shaders.get("basic");
     m_locMvp = m_prog->uniformLocation("u_mvp");
     m_locColor = m_prog->uniformLocation("u_color");
+    m_locPointSize = m_prog->uniformLocation("u_pointSize");
 
     // Create buffers/VAOs
     if (!m_vaoPoints.isCreated()) m_vaoPoints.create();
@@ -122,8 +123,9 @@ void Renderer::draw(const Camera& cam, const RenderSettings& cfg, const QSize& v
     // Points
     if (cfg.showPoints && m_pointCount > 0) {
         glEnable(GL_PROGRAM_POINT_SIZE);
-        glPointSize(static_cast<GLfloat>(cfg.pointSize));
+        // Set color and point size via uniforms
         m_prog->setUniformValue(m_locColor, cfg.pointColor);
+        m_prog->setUniformValue(m_locPointSize, static_cast<float>(cfg.pointSize));
         m_vaoPoints.bind();
         glDrawArrays(GL_POINTS, 0, m_pointCount);
         m_vaoPoints.release();

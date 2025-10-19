@@ -26,6 +26,7 @@ private:
     QOpenGLShaderProgram* m_prog {nullptr};
     int m_locMvp {-1};
     int m_locColor {-1};
+    int m_locPointSize {-1};
 
     // Points
     QOpenGLVertexArrayObject m_vaoPoints;
