@@ -90,6 +90,16 @@ target_link_libraries(PointToMesh PRIVATE
     Eigen3::Eigen
 )
 
+set(POST_BUILD_COMMANDS "")
+set(POST_BUILD_COMMENTS "")
+
+list(APPEND POST_BUILD_COMMANDS
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/resources
+        $<TARGET_FILE_DIR:PointToMesh>/resources
+)
+list(APPEND POST_BUILD_COMMENTS "Copying project resources...")
+
 if (WIN32)
     # Locate windeployqt within vcpkg install paths on Windows
     find_program(WINDEPLOYQT_EXECUTABLE
@@ -99,16 +109,23 @@ if (WIN32)
             "$ENV{VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/tools/qt6/bin"
     )
 
-    if (WINDEPLOYQT_EXECUTABLE)
-        add_custom_command(TARGET PointToMesh POST_BUILD
-            COMMAND "${WINDEPLOYQT_EXECUTABLE}"
+    if(WINDEPLOYQT_EXECUTABLE)
+        list(APPEND POST_BUILD_COMMANDS
+                COMMAND "${WINDEPLOYQT_EXECUTABLE}"
                 $<$<CONFIG:Debug>:--debug>
                 $<$<CONFIG:Release>:--release>
                 --dir "$<TARGET_FILE_DIR:PointToMesh>"
                 "$<TARGET_FILE:PointToMesh>"
-            COMMENT "Deploying Qt runtime with windeployqt"
         )
+        list(APPEND POST_BUILD_COMMENTS "Deploying Qt runtime...")
     endif()
+endif()
+
+if(POST_BUILD_COMMANDS)
+    add_custom_command(TARGET PointToMesh POST_BUILD
+            ${POST_BUILD_COMMANDS}
+            COMMENT "${POST_BUILD_COMMENTS}"
+    )
 endif()
 
 # On Windows, merge <build>/vcpkg_installed/<triplet>/debug into the root prefix
