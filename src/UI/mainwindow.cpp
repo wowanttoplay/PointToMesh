@@ -14,7 +14,7 @@
 #include <QtGlobal>
 #include <QAction>
 #include <QDockWidget>
-#include "../Presentation/WindowStateGuard.h"
+#include "../Settings//WindowStateGuard.h"
 #include "ViewSettingsDialog.h"
 
 

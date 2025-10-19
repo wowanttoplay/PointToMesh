@@ -1,6 +1,6 @@
 #include "ViewSettingsDialog.h"
 #include "ui_ViewSettingsDialog.h"
-#include "../Presentation/ViewSettingsBinder.h"
+#include "../Settings/ViewSettingsBinder.h"
 #include "../Rendering/RenderView.h"
 
 ViewSettingsDialog::ViewSettingsDialog(RenderView* view, QWidget* parent)

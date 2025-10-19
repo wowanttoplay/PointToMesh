@@ -4,7 +4,7 @@
 #include <QPoint>
 #include <algorithm>
 #include "../Model/Geometry.h"
-#include "../Presentation/SettingsManager.h"
+#include "../Settings/SettingsManager.h"
 #include "Camera.h"
 #include "ShaderLibrary.h"
 #include "Renderer.h"

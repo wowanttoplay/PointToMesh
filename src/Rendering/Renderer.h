@@ -3,8 +3,7 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLShaderProgram>
-#include <QSize>
-#include "../Presentation/SettingsManager.h"
+#include "../Settings/SettingsManager.h"
 #include "../Model/Geometry.h"
 
 class ShaderLibrary;
