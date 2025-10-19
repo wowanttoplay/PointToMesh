@@ -16,7 +16,6 @@ public:
 
 public slots:
     void importFromFile(const QString& path);
-    void runReconstruction();
     void runReconstructionWith(MeshGenerationMethod method);
     void exportMesh(const QString& path, bool withNormals);
 

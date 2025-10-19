@@ -34,7 +34,6 @@
     <property name="title">
      <string>Tools</string>
     </property>
-    <addaction name="actionReconstruct"/>
     <addaction name="actionReconstructPoisson"/>
     <addaction name="actionReconstructScaleSpace"/>
     <addaction name="actionReconstructAdvancingFront"/>
@@ -74,11 +73,6 @@
   <action name="actionExport">
    <property name="text">
     <string>Export</string>
-   </property>
-  </action>
-  <action name="actionReconstruct">
-   <property name="text">
-    <string>Reconstruct</string>
    </property>
   </action>
   <action name="actionReconstructPoisson">

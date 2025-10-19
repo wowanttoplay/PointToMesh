@@ -13,7 +13,6 @@ public:
 
 public slots:
     void importPointCloud(const QString& filePath);
-    void reconstruct();
     void reconstructWith(MeshGenerationMethod method);
     void exportMeshTo(const QString& filePath, bool withNormals);
 

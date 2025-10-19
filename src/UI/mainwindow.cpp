@@ -52,9 +52,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
     });
 
     // Optional reconstruct action if present
-    if (auto a = findChild<QAction*>("actionReconstruct")) {
-        connect(a, &QAction::triggered, this, [this]{ m_controller->runReconstruction(); });
-    }
     if (auto a = findChild<QAction*>("actionReconstructPoisson")) {
         connect(a, &QAction::triggered, this, [this]{ m_controller->runReconstructionWith(MeshGenerationMethod::POISSON_RECONSTRUCTION); });
     }

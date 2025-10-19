@@ -5,13 +5,9 @@
 #include <QVector3D>
 
 #include "../DataProcess/PointCloudProcessor.h"
-#include "../DataProcess/CGALPointCloudProcessor.h"
 #include "../Model/Geometry.h"
 
 #include <CGAL/Surface_mesh.h>
-#include <CGAL/boost/graph/helpers.h>
-#include <CGAL/property_map.h>
-#include <boost/graph/graph_traits.hpp>
 
 ProcessingWorker::ProcessingWorker(std::unique_ptr<PointCloudProcessor> proc, QObject* parent)
     : QObject(parent), m_proc(std::move(proc)) {}
@@ -36,11 +32,6 @@ void ProcessingWorker::importPointCloud(const QString& filePath) {
         model->points.emplace_back(static_cast<float>(p.x()), static_cast<float>(p.y()), static_cast<float>(p.z()));
     }
     emit pointCloudReady(model);
-}
-
-void ProcessingWorker::reconstruct() {
-    // Default to Poisson for backward compatibility
-    reconstructWith(MeshGenerationMethod::POISSON_RECONSTRUCTION);
 }
 
 void ProcessingWorker::reconstructWith(MeshGenerationMethod method) {
