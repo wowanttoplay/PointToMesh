@@ -27,10 +27,11 @@ ViewSettingsBinder::ViewSettingsBinder(RenderView* view,
                                        PointSizeControlWidget* pointSizeWidget,
                                        ColorSwatch* swatchPointColor,
                                        ColorSwatch* swatchMeshColor,
+                                       ColorSwatch* swatchWireColor,
                                        QObject* parent)
     : QObject(parent), m_view(view), m_dock(viewSettingsDock), m_action(viewSettingsAction),
       m_chkPoints(chkShowPoints), m_chkMesh(chkShowMesh), m_chkWire(chkWireframe), m_psc(pointSizeWidget),
-      m_swatchPoint(swatchPointColor), m_swatchMesh(swatchMeshColor) {}
+      m_swatchPoint(swatchPointColor), m_swatchMesh(swatchMeshColor), m_swatchWire(swatchWireColor) {}
 
 void ViewSettingsBinder::initialize() {
     // Sync action <-> dock visibility
@@ -115,5 +116,19 @@ void ViewSettingsBinder::initialize() {
         });
         // Apply initially to view
         m_view->setMeshColor(rs.meshColor);
+    }
+
+    if (m_swatchWire && m_view) {
+        m_swatchWire->setLabel(tr("Wireframe Color"));
+        m_swatchWire->setDialogTitle(tr("Choose Wireframe Color"));
+        m_swatchWire->setColor(toColor(rs.wireColor));
+        QObject::connect(m_swatchWire, &ColorSwatch::colorChanged, this, [this](const QColor& c){
+            RenderSettings cur = SettingsManager::instance().loadRenderSettings();
+            cur.wireColor = toVec3(c);
+            SettingsManager::instance().saveRenderSettings(cur);
+            if (m_view) m_view->setWireColor(cur.wireColor);
+        });
+        // Apply initially to view
+        m_view->setWireColor(rs.wireColor);
     }
 }

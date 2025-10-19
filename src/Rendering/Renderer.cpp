@@ -103,21 +103,39 @@ void Renderer::draw(const Camera& cam, const RenderSettings& cfg, const QSize& v
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     const float aspect = viewport.width() > 0 ? float(viewport.width())/float(std::max(1, viewport.height())) : 1.0f;
-    QMatrix4x4 mvp = cam.projMatrix(aspect) * cam.viewMatrix();
+    const QMatrix4x4 mvp = cam.projMatrix(aspect) * cam.viewMatrix();
 
     m_prog->bind();
     m_prog->setUniformValue(m_locMvp, mvp);
 
-    // Mesh
+    // Mesh fill pass
     if (cfg.showMesh && m_indexCount > 0) {
-        if (cfg.wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         m_prog->setUniformValue(m_locColor, cfg.meshColor);
         m_vaoMesh.bind();
         m_iboMesh.bind();
         glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, nullptr);
         m_iboMesh.release();
         m_vaoMesh.release();
-        if (cfg.wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    // Mesh wireframe overlay pass (independent of showMesh)
+    if (cfg.wireframe && m_indexCount > 0) {
+        // Slightly bias to reduce z-fighting against the filled surface
+        glEnable(GL_POLYGON_OFFSET_LINE);
+        glPolygonOffset(-1.0f, -1.0f);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+        m_prog->setUniformValue(m_locColor, cfg.wireColor);
+        m_vaoMesh.bind();
+        m_iboMesh.bind();
+        glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, nullptr);
+        m_iboMesh.release();
+        m_vaoMesh.release();
+
+        // Restore state
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glDisable(GL_POLYGON_OFFSET_LINE);
     }
 
     // Points

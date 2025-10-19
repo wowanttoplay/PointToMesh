@@ -21,6 +21,7 @@ ViewSettingsDialog::ViewSettingsDialog(RenderView* view, QWidget* parent)
         ui->pointSizeControl,
         ui->swatchPointColor,
         ui->swatchMeshColor,
+        ui->swatchWireColor,
         this
     );
     m_binder->initialize();
@@ -29,4 +30,3 @@ ViewSettingsDialog::ViewSettingsDialog(RenderView* view, QWidget* parent)
 ViewSettingsDialog::~ViewSettingsDialog() {
     delete ui;
 }
-

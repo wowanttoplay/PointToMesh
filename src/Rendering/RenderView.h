@@ -25,6 +25,7 @@ public slots:
     void setPointSize(float s) { m_cfg.pointSize = static_cast<int>(std::clamp(s, 1.0f, 20.0f)); update(); }
     void setMeshColor(const QVector3D& c) { m_cfg.meshColor = c; update(); }
     void setPointColor(const QVector3D& c) { m_cfg.pointColor = c; update(); }
+    void setWireColor(const QVector3D& c) { m_cfg.wireColor = c; update(); }
 
 public:
     float pointSize() const { return static_cast<float>(m_cfg.pointSize); }

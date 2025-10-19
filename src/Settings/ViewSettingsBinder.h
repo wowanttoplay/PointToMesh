@@ -20,6 +20,7 @@ public:
                        PointSizeControlWidget* pointSizeWidget,
                        ColorSwatch* swatchPointColor,
                        ColorSwatch* swatchMeshColor,
+                       ColorSwatch* swatchWireColor,
                        QObject* parent = nullptr);
 
     void initialize();
@@ -34,4 +35,5 @@ private:
     PointSizeControlWidget* m_psc {nullptr};
     ColorSwatch* m_swatchPoint {nullptr};
     ColorSwatch* m_swatchMesh {nullptr};
+    ColorSwatch* m_swatchWire {nullptr};
 };
