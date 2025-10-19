@@ -4,7 +4,6 @@
 class QDockWidget;
 class QAction;
 class QCheckBox;
-class QDoubleSpinBox;
 class PointSizeControlWidget;
 class RenderView;
 class ColorSwatch;
@@ -22,7 +21,7 @@ public:
                        ColorSwatch* swatchPointColor,
                        ColorSwatch* swatchMeshColor,
                        ColorSwatch* swatchWireColor,
-                       QDoubleSpinBox* spinCameraSpeed,
+                       PointSizeControlWidget* cameraSpeedWidget,
                        QObject* parent = nullptr);
 
     void initialize();
@@ -38,5 +37,5 @@ private:
     ColorSwatch* m_swatchPoint {nullptr};
     ColorSwatch* m_swatchMesh {nullptr};
     ColorSwatch* m_swatchWire {nullptr};
-    QDoubleSpinBox* m_spinCameraSpeed {nullptr};
+    PointSizeControlWidget* m_cameraSpeedCtrl {nullptr};
 };

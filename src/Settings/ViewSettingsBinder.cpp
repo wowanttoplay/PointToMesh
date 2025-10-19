@@ -2,7 +2,6 @@
 #include <QDockWidget>
 #include <QAction>
 #include <QCheckBox>
-#include <QDoubleSpinBox>
 #include "SettingsManager.h"
 #include "../Rendering/RenderView.h"
 #include "../UI/PointSizeControlWidget.h"
@@ -29,12 +28,12 @@ ViewSettingsBinder::ViewSettingsBinder(RenderView* view,
                                        ColorSwatch* swatchPointColor,
                                        ColorSwatch* swatchMeshColor,
                                        ColorSwatch* swatchWireColor,
-                                       QDoubleSpinBox* spinCameraSpeed,
+                                       PointSizeControlWidget* cameraSpeedWidget,
                                        QObject* parent)
     : QObject(parent), m_view(view), m_dock(viewSettingsDock), m_action(viewSettingsAction),
       m_chkPoints(chkShowPoints), m_chkMesh(chkShowMesh), m_chkWire(chkWireframe), m_psc(pointSizeWidget),
       m_swatchPoint(swatchPointColor), m_swatchMesh(swatchMeshColor), m_swatchWire(swatchWireColor),
-      m_spinCameraSpeed(spinCameraSpeed) {}
+      m_cameraSpeedCtrl(cameraSpeedWidget) {}
 
 void ViewSettingsBinder::initialize() {
     // Sync action <-> dock visibility
@@ -82,6 +81,8 @@ void ViewSettingsBinder::initialize() {
     if (m_psc && m_view) {
         // Initialize from settings and then wire changes
         const int initial = rs.pointSize;
+        m_psc->setLabelText(tr("Point Size:"));
+        m_psc->setRange(1, 20);
         m_psc->setValue(initial);
         m_view->setPointSize(static_cast<float>(initial));
         QObject::connect(m_psc, &PointSizeControlWidget::valueChanged, this, [this](int v){
@@ -135,15 +136,13 @@ void ViewSettingsBinder::initialize() {
         m_view->setWireColor(rs.wireColor);
     }
 
-    // Camera speed via double spin box
-    if (m_spinCameraSpeed && m_view) {
-        m_spinCameraSpeed->setMinimum(0.01);
-        m_spinCameraSpeed->setMaximum(1000.0);
-        m_spinCameraSpeed->setSingleStep(0.1);
-        m_spinCameraSpeed->setDecimals(2);
-        m_spinCameraSpeed->setValue(rs.cameraSpeed);
+    // Camera speed via PointSizeControlWidget in double mode
+    if (m_cameraSpeedCtrl && m_view) {
+        m_cameraSpeedCtrl->setLabelText(tr("Camera Speed:"));
+        m_cameraSpeedCtrl->setRangeDouble(0.01, 20.0, 1);
+        m_cameraSpeedCtrl->setValueDouble(rs.cameraSpeed);
         m_view->setCameraSpeed(static_cast<float>(rs.cameraSpeed));
-        QObject::connect(m_spinCameraSpeed, qOverload<double>(&QDoubleSpinBox::valueChanged), this, [this](double v){
+        QObject::connect(m_cameraSpeedCtrl, &PointSizeControlWidget::valueChangedDouble, this, [this](double v){
             if (m_view) m_view->setCameraSpeed(static_cast<float>(v));
             RenderSettings cur = SettingsManager::instance().loadRenderSettings();
             cur.cameraSpeed = static_cast<float>(v);
