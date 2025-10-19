@@ -4,8 +4,6 @@
 
 #include <QOpenGLShaderProgram>
 #include <QVector3D>
-#include <QCoreApplication>
-#include <QDir>
 
 Renderer::Renderer() = default;
 Renderer::~Renderer() = default;
@@ -17,16 +15,9 @@ bool Renderer::initialize(ShaderLibrary& shaders, QString* error) {
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
 
-    // Load shader sources from external files under resources/shaders
-    const QString shaderDir = QCoreApplication::applicationDirPath() + "/resources/shaders";
-    const QString vertPath = shaderDir + "/basic.vert";
-    const QString fragPath = shaderDir + "/basic.frag";
-
-    // Prepare shader via Qt's addShaderFromSourceFile
-    if (!shaders.get("basic")) {
-        if (!shaders.addProgramFromFiles("basic", vertPath, fragPath, error)) {
-            return false;
-        }
+    // Ensure the required shader program is available by name. File discovery is handled by ShaderLibrary.
+    if (!shaders.ensureProgram("basic", error)) {
+        return false;
     }
     m_prog = shaders.get("basic");
     m_locMvp = m_prog->uniformLocation("u_mvp");
