@@ -62,11 +62,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
         connect(a, &QAction::triggered, this, [this]{ m_controller->runReconstructionWith(MeshGenerationMethod::ADVANCING_FRONT_RECONSTRUCTION); });
     }
 
+    // Create View Settings dock before restoring window state, so visibility/layout can be restored
+    ConnectViewSettings();
+
     // RAII restore/sync of window geometry and dock layout
     m_windowStateGuard = std::make_unique<WindowStateGuard>(this);
-
-    // View Settings as separate dialog
-    ConnectViewSettings();
 }
 
 MainWindow::~MainWindow() = default;
@@ -75,10 +75,8 @@ void MainWindow::ConnectViewSettings() {
     if (!ui->actionViewSettings)
         return;
 
-    // Create the dock only once, add to the right, and keep hidden by default
     if (!m_viewSettingsDialog) {
         m_viewSettingsDialog = new ViewSettingsDialog(m_renderView, ui->actionViewSettings, this);
         addDockWidget(Qt::RightDockWidgetArea, m_viewSettingsDialog);
-        m_viewSettingsDialog->hide();
     }
 }
