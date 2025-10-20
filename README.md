@@ -137,3 +137,15 @@ To rewrite past history (optional, requires force-push and team coordination):
 ```bash
 git lfs migrate import --include="TestExamples/**/*.ply"
 ```
+
+---
+
+## 5. Generate your own test point clouds
+
+A small Python tool is provided at `Py_tools/generate_sphere.py` to generate synthetic point clouds (e.g., ball, cube, cube-with-hole). For usage and all options, see the script's header comments or run:
+
+```bash
+python3 Py_tools/generate_sphere.py --help
+```
+
+If you save outputs under `TestExamples/`, `.ply` files will be tracked by Git LFS automatically (see section 4).
