@@ -66,6 +66,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
 
     // Create View Settings dock before restoring window state, so visibility/layout can be restored
     ConnectViewSettings();
+    ConnectSplitPlaneControls();
 
     // RAII restore/sync of window geometry and dock layout
     m_windowStateGuard = std::make_unique<WindowStateGuard>(this);
@@ -92,7 +93,7 @@ void MainWindow::ConnectViewSettings() {
 
 void MainWindow::ConnectSplitPlaneControls() {
     if (!m_splitPlaneDocker) {
-        m_splitPlaneDocker = new SplitPlaneDocker(this);
+        m_splitPlaneDocker = new SplitPlaneDocker(this, m_renderView);
         addDockWidget(Qt::AllDockWidgetAreas, m_splitPlaneDocker);
 
         if (ui->menuView) {
