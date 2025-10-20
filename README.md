@@ -80,9 +80,9 @@ This workflow requires a manual installation of [vcpkg](https://vcpkg.io/).
 
 ## 4. Git LFS for sample assets
 
-The large sample assets under `TestExamples/` are tracked with [Git LFS](https://git-lfs.com/). This keeps the repository lightweight while allowing you to pull large files on demand.
+The `.ply` sample assets under `TestExamples/` are tracked with [Git LFS](https://git-lfs.com/). This keeps the repository lightweight while allowing you to pull large files on demand.
 
-- Files tracked: everything under `TestExamples/**`.
+- Files tracked: `TestExamples/**/*.ply`.
 - Tracking configuration: see `.gitattributes`.
 
 ### Setup
@@ -105,23 +105,23 @@ git lfs pull
 
 ### Contributing new/updated assets
 
-Any files you add under `TestExamples/` will be stored in LFS automatically. Commit as usual:
+Any `.ply` files you add under `TestExamples/` will be stored in LFS automatically. Commit as usual:
 ```bash
 git add TestExamples/
-git commit -m "Add/update sample assets"
+git commit -m "Add/update .ply sample assets"
 ```
 
 ### Migrating existing assets to LFS (if needed)
 
-If you already committed assets to Git before LFS was enabled, convert them safely on your branch:
+If you already committed `.ply` assets to Git before LFS was enabled, convert them safely on your branch:
 ```bash
 git lfs install
 # Keep working files, re-stage to index as LFS pointers
-git rm --cached -r TestExamples/
+find TestExamples -type f -name '*.ply' -print0 | xargs -0 git rm --cached --
 git add TestExamples/
-git commit -m "Migrate TestExamples assets to Git LFS"
+git commit -m "Migrate TestExamples .ply assets to Git LFS"
 ```
 To rewrite past history (optional, requires force-push and team coordination):
 ```bash
-git lfs migrate import --include="TestExamples/**"
+git lfs migrate import --include="TestExamples/**/*.ply"
 ```
