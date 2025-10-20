@@ -6,6 +6,8 @@
 
 struct PointCloudModel {
     std::vector<QVector3D> points;
+    // Corresponding per-point normals (same size/order as points). May be zero vectors if not available.
+    std::vector<QVector3D> normals;
 };
 
 struct MeshModel {
@@ -15,4 +17,3 @@ struct MeshModel {
 
 using PointCloudPtr = std::shared_ptr<const PointCloudModel>;
 using MeshPtr       = std::shared_ptr<const MeshModel>;
-

@@ -24,9 +24,21 @@ bool Renderer::initialize(ShaderLibrary& shaders, QString* error) {
     m_locColor = m_prog->uniformLocation("u_color");
     m_locPointSize = m_prog->uniformLocation("u_pointSize");
 
+    // Normals visualization program (geometry shader based)
+    QString nerr;
+    if (!shaders.ensureProgram("normals", &nerr)) {
+        if (error) *error = QStringLiteral("Normals shader failed: %1").arg(nerr);
+        return false;
+    }
+    m_progNormals = shaders.get("normals");
+    m_locMvpN = m_progNormals->uniformLocation("u_mvp");
+    m_locColorN = m_progNormals->uniformLocation("u_color");
+    m_locNormalLen = m_progNormals->uniformLocation("u_normalLen");
+
     // Create buffers/VAOs
     if (!m_vaoPoints.isCreated()) m_vaoPoints.create();
     if (!m_vboPoints.isCreated()) m_vboPoints.create();
+    if (!m_vboPointNormals.isCreated()) m_vboPointNormals.create();
 
     if (!m_vaoMesh.isCreated()) m_vaoMesh.create();
     if (!m_vboMesh.isCreated()) m_vboMesh.create();
@@ -39,10 +51,16 @@ bool Renderer::initialize(ShaderLibrary& shaders, QString* error) {
 
 void Renderer::setupPointVAO() {
     m_vaoPoints.bind();
+    // Positions at location 0
     m_vboPoints.bind();
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(QVector3D), reinterpret_cast<void*>(0));
     m_vboPoints.release();
+    // Normals at location 1 (optional)
+    m_vboPointNormals.bind();
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(QVector3D), reinterpret_cast<void*>(0));
+    m_vboPointNormals.release();
     m_vaoPoints.release();
 }
 
@@ -57,6 +75,8 @@ void Renderer::setupMeshVAO() {
 
 void Renderer::updatePoints(const PointCloudPtr& cloud) {
     m_pointCount = 0;
+    m_hasPointNormal = false;
+    // Positions
     m_vboPoints.bind();
     if (cloud && !cloud->points.empty()) {
         const auto bytes = static_cast<int>(cloud->points.size() * sizeof(QVector3D));
@@ -67,6 +87,19 @@ void Renderer::updatePoints(const PointCloudPtr& cloud) {
         m_vboPoints.allocate(0);
     }
     m_vboPoints.release();
+
+    // Normals (optional)
+    m_vboPointNormals.bind();
+    if (cloud && !cloud->normals.empty() && cloud->normals.size() >= cloud->points.size()) {
+        const auto nbytes = static_cast<int>(cloud->points.size() * sizeof(QVector3D));
+        m_vboPointNormals.allocate(nbytes);
+        m_vboPointNormals.write(0, cloud->normals.data(), nbytes);
+        m_hasPointNormal = (m_pointCount > 0);
+    } else {
+        m_vboPointNormals.allocate(0);
+        m_hasPointNormal = false;
+    }
+    m_vboPointNormals.release();
 }
 
 void Renderer::updateMesh(const MeshPtr& mesh) {
@@ -150,4 +183,18 @@ void Renderer::draw(const Camera& cam, const RenderSettings& cfg, const QSize& v
     }
 
     m_prog->release();
+
+    // Normals visualization for points (requires normals and program)
+    if (cfg.showPoints && m_hasPointNormal && m_progNormals && m_pointCount > 0) {
+        m_progNormals->bind();
+        m_progNormals->setUniformValue(m_locMvpN, mvp);
+        // A default bluish color for normals
+        m_progNormals->setUniformValue(m_locColorN, QVector3D(0.2f, 0.6f, 1.0f));
+        // Fixed length in world units; could be made configurable
+        m_progNormals->setUniformValue(m_locNormalLen, 0.02f);
+        m_vaoPoints.bind();
+        glDrawArrays(GL_POINTS, 0, m_pointCount);
+        m_vaoPoints.release();
+        m_progNormals->release();
+    }
 }

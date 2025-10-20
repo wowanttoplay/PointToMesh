@@ -27,9 +27,16 @@ void ProcessingWorker::importPointCloud(const QString& filePath) {
     const auto& pc = m_proc->getPointCloud();
     auto model = std::make_shared<PointCloudModel>();
     model->points.reserve(pc.size());
+    model->normals.reserve(pc.size());
     for (const auto& pn : pc) {
-        const auto& p = pn.first; // CGAL point
+        const auto& p = pn.first;  // CGAL point
+        const auto& n = pn.second; // CGAL normal (may be NULL_VECTOR)
         model->points.emplace_back(static_cast<float>(p.x()), static_cast<float>(p.y()), static_cast<float>(p.z()));
+        if (n != CGAL::NULL_VECTOR) {
+            model->normals.emplace_back(static_cast<float>(n.x()), static_cast<float>(n.y()), static_cast<float>(n.z()));
+        } else {
+            model->normals.emplace_back(0.0f, 0.0f, 0.0f);
+        }
     }
     emit pointCloudReady(model);
 }

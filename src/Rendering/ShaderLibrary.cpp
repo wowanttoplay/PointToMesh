@@ -60,20 +60,41 @@ bool ShaderLibrary::ensureProgram(const QString& name, QString* error) {
 
     const QString vertFileName = name + ".vert";
     const QString fragFileName = name + ".frag";
+    const QString geomFileName = name + ".geom";
 
     QString lastErr;
     for (const QString& base : paths) {
         const QString v = QDir(base).filePath(vertFileName);
         const QString f = QDir(base).filePath(fragFileName);
-        // If it's a Qt resource path (:/...), QFileInfo on Qt resources may report exists as true
+        const QString g = QDir(base).filePath(geomFileName);
         const bool vExists = QFileInfo::exists(v);
         const bool fExists = QFileInfo::exists(f);
         if (!vExists || !fExists) {
             continue;
         }
-        if (addProgramFromFiles(name, v, f, &lastErr)) {
-            return true;
+
+        auto prog = QSharedPointer<QOpenGLShaderProgram>::create();
+        if (!prog->addShaderFromSourceFile(QOpenGLShader::Vertex, v)) {
+            lastErr = prog->log();
+            continue;
         }
+        // Optional geometry shader
+        if (QFileInfo::exists(g)) {
+            if (!prog->addShaderFromSourceFile(QOpenGLShader::Geometry, g)) {
+                lastErr = prog->log();
+                continue;
+            }
+        }
+        if (!prog->addShaderFromSourceFile(QOpenGLShader::Fragment, f)) {
+            lastErr = prog->log();
+            continue;
+        }
+        if (!prog->link()) {
+            lastErr = prog->log();
+            continue;
+        }
+        m_programs.insert(name, prog);
+        return true;
     }
 
     if (error) {

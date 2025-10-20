@@ -22,16 +22,24 @@ public:
     void draw(const Camera& cam, const RenderSettings& cfg, const QSize& viewport);
 
 private:
-    // Shaders
+    // Shaders (basic)
     QOpenGLShaderProgram* m_prog {nullptr};
     int m_locMvp {-1};
     int m_locColor {-1};
     int m_locPointSize {-1};
 
+    // Shaders (normals visualization)
+    QOpenGLShaderProgram* m_progNormals {nullptr};
+    int m_locMvpN {-1};
+    int m_locColorN {-1};
+    int m_locNormalLen {-1};
+
     // Points
     QOpenGLVertexArrayObject m_vaoPoints;
-    QOpenGLBuffer m_vboPoints { QOpenGLBuffer::VertexBuffer };
+    QOpenGLBuffer m_vboPoints { QOpenGLBuffer::VertexBuffer };       // positions
+    QOpenGLBuffer m_vboPointNormals { QOpenGLBuffer::VertexBuffer }; // normals
     GLsizei m_pointCount {0};
+    bool m_hasPointNormal {false};
 
     // Mesh
     QOpenGLVertexArrayObject m_vaoMesh;
