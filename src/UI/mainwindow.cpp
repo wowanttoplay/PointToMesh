@@ -23,10 +23,7 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_unique<Ui::MainWindow>()) {
     ui->setupUi(this);
 
-    // Replace dock content with LogPanel so logging is encapsulated
-    m_logPanel = new LogPanel(this);
-    ui->dockWidget->setWidget(m_logPanel);
-
+    ConnectLogView();
     // Replace central widget with our RenderView
     m_renderView = new RenderView(this);
     if (!m_renderView) {
@@ -94,7 +91,7 @@ void MainWindow::ConnectViewSettings() {
 void MainWindow::ConnectSplitPlaneControls() {
     if (!m_splitPlaneDocker) {
         m_splitPlaneDocker = new SplitPlaneDocker(this, m_renderView);
-        addDockWidget(Qt::AllDockWidgetAreas, m_splitPlaneDocker);
+        addDockWidget(Qt::LeftDockWidgetArea, m_splitPlaneDocker);
 
         if (ui->menuView) {
             if (ui->actionSplitPlaneSettings) {
@@ -103,5 +100,12 @@ void MainWindow::ConnectSplitPlaneControls() {
             }
             ui->menuView->addAction(m_splitPlaneDocker->toggleViewAction());
         }
+    }
+}
+
+void MainWindow::ConnectLogView() {
+    if (!m_logPanel) {
+        m_logPanel = new LogPanel(this);
+        ui->dockWidget->setWidget(m_logPanel);
     }
 }

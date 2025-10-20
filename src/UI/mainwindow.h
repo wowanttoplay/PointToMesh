@@ -44,6 +44,7 @@ private:
 private:
     void ConnectViewSettings();
     void ConnectSplitPlaneControls();
+    void ConnectLogView();
 };
 
 

@@ -44,6 +44,7 @@
     </property>
     <addaction name="actionViewSettings"/>
     <addaction name="actionSplitPlaneSettings"/>
+    <addaction name="actionOutput_View"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
@@ -106,6 +107,11 @@
    </property>
    <property name="text">
     <string>Split Plane Settings</string>
+   </property>
+  </action>
+  <action name="actionOutput_View">
+   <property name="text">
+    <string>Output View</string>
    </property>
   </action>
  </widget>
