@@ -1,20 +1,22 @@
 #ifndef POINTTOMESH_VIEWSETTINGSDIALOG_H
 #define POINTTOMESH_VIEWSETTINGSDIALOG_H
 
-#include <QDialog>
+#include <QDockWidget>
 #include <memory>
 
 class RenderView;
 class ViewSettingsBinder;
+class QAction;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class ViewSettingsDialog; }
 QT_END_NAMESPACE
 
-class ViewSettingsDialog : public QDialog {
+class ViewSettingsDialog : public QDockWidget {
     Q_OBJECT
 public:
-    explicit ViewSettingsDialog(RenderView* view, QWidget* parent = nullptr);
+    // Accept an optional toggle action so binder can sync dock visibility <-> action
+    explicit ViewSettingsDialog(RenderView* view, QAction* toggleAction = nullptr, QWidget* parent = nullptr);
     ~ViewSettingsDialog() override;
 
 private:
@@ -24,4 +26,3 @@ private:
 };
 
 #endif // POINTTOMESH_VIEWSETTINGSDIALOG_H
-

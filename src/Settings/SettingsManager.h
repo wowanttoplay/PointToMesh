@@ -5,7 +5,7 @@
 class QMainWindow;
 
 struct ClipPlaneParams {
-    bool clipEnabled {true};
+    bool clipEnabled {false};
     QVector4D clipPlane {0.0f, 1.0f, 0.0f, 0.0f}; // normal + d
 };
 

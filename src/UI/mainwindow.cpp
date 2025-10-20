@@ -72,23 +72,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
 MainWindow::~MainWindow() = default;
 
 void MainWindow::ConnectViewSettings() {
-    if (ui->actionViewSettings) {
-        ui->actionViewSettings->setChecked(false);
-        connect(ui->actionViewSettings, &QAction::toggled, this, [this](bool on){
-            if (!m_viewSettingsDialog) {
-                m_viewSettingsDialog = new ViewSettingsDialog(m_renderView, this);
-                // When dialog closes, uncheck the action
-                connect(m_viewSettingsDialog, &QDialog::finished, this, [this](int){
-                    if (ui && ui->actionViewSettings) ui->actionViewSettings->setChecked(false);
-                });
-            }
-            if (on) {
-                m_viewSettingsDialog->show();
-                m_viewSettingsDialog->raise();
-                m_viewSettingsDialog->activateWindow();
-            } else if (m_viewSettingsDialog) {
-                m_viewSettingsDialog->hide();
-            }
-        });
+    if (!ui->actionViewSettings)
+        return;
+
+    // Create the dock only once, add to the right, and keep hidden by default
+    if (!m_viewSettingsDialog) {
+        m_viewSettingsDialog = new ViewSettingsDialog(m_renderView, ui->actionViewSettings, this);
+        addDockWidget(Qt::RightDockWidgetArea, m_viewSettingsDialog);
+        m_viewSettingsDialog->hide();
     }
 }
