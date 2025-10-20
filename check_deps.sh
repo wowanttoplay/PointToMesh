@@ -43,6 +43,20 @@ else
     echo -e "${YELLOW}On macOS: xcode-select --install${NC}"
 fi
 
+# 3b. Check for Git LFS
+echo -n "Checking for git-lfs... "
+if command_exists git && git lfs version >/dev/null 2>&1; then
+    echo -e "${GREEN}OK${NC}"
+else
+    echo -e "${YELLOW}Not Found${NC}"
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo -e "${YELLOW}Install via Homebrew bundle: brew bundle install (Brewfile includes git-lfs).${NC}"
+    else
+        echo -e "${YELLOW}Install from https://git-lfs.com and ensure 'git lfs' is on PATH.${NC}"
+    fi
+    echo -e "${YELLOW}Then run: git lfs install${NC}"
+fi
+
 echo ""
 echo "--- Package Manager Checks ---"
 echo "This project uses vcpkg (recommended) or Homebrew (macOS) for dependencies."

@@ -4,3 +4,5 @@ brew "qt"
 # For CGAL
 brew "cgal"
 
+# For Git LFS (large files)
+brew "git-lfs"
