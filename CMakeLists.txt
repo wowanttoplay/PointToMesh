@@ -60,8 +60,6 @@ add_executable(PointToMesh
     src/Presentation/PointCloudController.h
         src/Settings/SettingsManager.cpp
         src/Settings/SettingsManager.h
-        src/Settings/ViewSettingsBinder.cpp
-        src/Settings/ViewSettingsBinder.h
         src/Settings/WindowStateGuard.cpp
         src/Settings/WindowStateGuard.h
     src/Model/Geometry.h
