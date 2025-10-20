@@ -22,6 +22,7 @@ ViewSettingsBinder::ViewSettingsBinder(RenderView* view,
                                        QDockWidget* viewSettingsDock,
                                        QAction* viewSettingsAction,
                                        QCheckBox* chkShowPoints,
+                                       QCheckBox* chkShowNormals,
                                        QCheckBox* chkShowMesh,
                                        QCheckBox* chkWireframe,
                                        ScalarControlWidget* pointSizeWidget,
@@ -31,7 +32,7 @@ ViewSettingsBinder::ViewSettingsBinder(RenderView* view,
                                        ScalarControlWidget* cameraSpeedWidget,
                                        QObject* parent)
     : QObject(parent), m_view(view), m_dock(viewSettingsDock), m_action(viewSettingsAction),
-      m_chkPoints(chkShowPoints), m_chkMesh(chkShowMesh), m_chkWire(chkWireframe), m_psc(pointSizeWidget),
+      m_chkPoints(chkShowPoints), m_chkNormals(chkShowNormals), m_chkMesh(chkShowMesh), m_chkWire(chkWireframe), m_psc(pointSizeWidget),
       m_swatchPoint(swatchPointColor), m_swatchMesh(swatchMeshColor), m_swatchWire(swatchWireColor),
       m_cameraSpeedCtrl(cameraSpeedWidget) {}
 
@@ -57,6 +58,18 @@ void ViewSettingsBinder::initialize() {
             SettingsManager::instance().saveRenderSettings(cur);
         });
     }
+
+    if (m_chkNormals && m_view) {
+        m_chkNormals->setChecked(rs.showNormals);
+        // No direct method to set normals visibility; would need to extend RenderView
+        QObject::connect(m_chkNormals, &QCheckBox::toggled, this, [this](bool on){
+            if (m_view) m_view->setShowNormals(on);
+            RenderSettings cur = SettingsManager::instance().loadRenderSettings();
+            cur.showNormals = on;
+            SettingsManager::instance().saveRenderSettings(cur);
+        });
+    }
+
     if (m_chkMesh && m_view) {
         m_chkMesh->setChecked(rs.showMesh);
         m_view->setShowMesh(m_chkMesh->isChecked());

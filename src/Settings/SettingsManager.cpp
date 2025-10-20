@@ -9,6 +9,7 @@ static constexpr const char* kKeyState        = "state";
 
 static constexpr const char* kGroupRender = "render";
 static constexpr const char* kKeyShowPoints = "showPoints";
+static constexpr const char* kKeyShowNormals   = "showNormals";
 static constexpr const char* kKeyShowMesh   = "showMesh";
 static constexpr const char* kKeyWireframe  = "wireframe";
 static constexpr const char* kKeyPointSize  = "pointSize";
@@ -54,6 +55,7 @@ RenderSettings SettingsManager::loadRenderSettings() const {
     s.beginGroup(kGroupRender);
     RenderSettings rs;
     rs.showPoints = s.value(kKeyShowPoints, true).toBool();
+    rs.showNormals = s.value(kKeyShowNormals, true).toBool();
     rs.showMesh   = s.value(kKeyShowMesh,   true).toBool();
     rs.wireframe  = s.value(kKeyWireframe,  false).toBool();
     rs.pointSize  = s.value(kKeyPointSize,  3).toInt();
@@ -69,6 +71,7 @@ void SettingsManager::saveRenderSettings(const RenderSettings& rs) const {
     QSettings s;
     s.beginGroup(kGroupRender);
     s.setValue(kKeyShowPoints, rs.showPoints);
+    s.setValue(kKeyShowNormals, rs.showNormals);
     s.setValue(kKeyShowMesh,   rs.showMesh);
     s.setValue(kKeyWireframe,  rs.wireframe);
     s.setValue(kKeyPointSize,  rs.pointSize);

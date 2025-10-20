@@ -1,4 +1,5 @@
 #pragma once
+#include <QCheckBox>
 #include <QObject>
 
 class QDockWidget;
@@ -15,6 +16,7 @@ public:
                        QDockWidget* viewSettingsDock,
                        QAction* viewSettingsAction,
                        QCheckBox* chkShowPoints,
+                       QCheckBox* chkShowNormals,
                        QCheckBox* chkShowMesh,
                        QCheckBox* chkWireframe,
                        ScalarControlWidget* pointSizeWidget,
@@ -31,6 +33,7 @@ private:
     QDockWidget* m_dock {nullptr};
     QAction* m_action {nullptr};
     QCheckBox* m_chkPoints {nullptr};
+    QCheckBox* m_chkNormals {nullptr};
     QCheckBox* m_chkMesh {nullptr};
     QCheckBox* m_chkWire {nullptr};
     ScalarControlWidget* m_psc {nullptr};

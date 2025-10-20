@@ -16,6 +16,7 @@ ViewSettingsDialog::ViewSettingsDialog(RenderView* view, QWidget* parent)
         /*viewSettingsDock*/ nullptr,
         /*viewSettingsAction*/ nullptr,
         ui->chkShowPoints,
+        ui->chkShowNormals,
         ui->chkShowMesh,
         ui->chkWireframe,
         ui->pointSizeControl,

@@ -22,6 +22,7 @@ public slots:
 
     // Display toggles
     void setShowPoints(bool on) { m_cfg.showPoints = on; update(); }
+    void setShowNormals(bool on) { m_cfg.showNormals = on; update(); }
     void setShowMesh(bool on) { m_cfg.showMesh = on; update(); }
     void setWireframe(bool on) { m_cfg.wireframe = on; update(); }
     void setPointSize(float s) { m_cfg.pointSize = static_cast<int>(std::clamp(s, 1.0f, 20.0f)); update(); }

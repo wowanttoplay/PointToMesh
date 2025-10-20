@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>ViewSettingsDialog</class>
  <widget class="QDialog" name="ViewSettingsDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>196</width>
+    <height>236</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>View Settings</string>
   </property>
@@ -17,19 +25,19 @@
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="chkShowMesh">
+    <widget class="QCheckBox" name="chkShowNormals">
      <property name="text">
-      <string>Show Mesh</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
+      <string>Show point Normals</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="chkWireframe">
+    <widget class="QCheckBox" name="chkShowMesh">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="text">
-      <string>Wireframe</string>
+      <string>Show Mesh</string>
      </property>
      <property name="checked">
       <bool>false</bool>
@@ -37,38 +45,46 @@
     </widget>
    </item>
    <item>
-    <widget class="ScalarControlWidget" name="pointSizeControl"/>
+    <widget class="QCheckBox" name="chkWireframe">
+     <property name="text">
+      <string>Show Wireframe</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
    </item>
    <item>
-    <widget class="ColorSwatch" name="swatchPointColor">
-     <property name="label">
+    <widget class="ScalarControlWidget" name="pointSizeControl" native="true"/>
+   </item>
+   <item>
+    <widget class="ColorSwatch" name="swatchPointColor" native="true">
+     <property name="label" stdset="0">
       <string>Point Color</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="ColorSwatch" name="swatchMeshColor">
-     <property name="label">
+    <widget class="ColorSwatch" name="swatchMeshColor" native="true">
+     <property name="label" stdset="0">
       <string>Mesh Color</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="ColorSwatch" name="swatchWireColor">
-     <property name="label">
+    <widget class="ColorSwatch" name="swatchWireColor" native="true">
+     <property name="label" stdset="0">
       <string>Wireframe Color</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="ScalarControlWidget" name="cameraSpeedControl">
-     <!-- Optional: binder will set label and range -->
-    </widget>
+    <widget class="ScalarControlWidget" name="cameraSpeedControl" native="true"/>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="standardButtons">
-      <set>QDialogButtonBox::Close</set>
+      <set>QDialogButtonBox::StandardButton::Close</set>
      </property>
     </widget>
    </item>

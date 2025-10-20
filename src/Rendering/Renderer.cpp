@@ -185,7 +185,7 @@ void Renderer::draw(const Camera& cam, const RenderSettings& cfg, const QSize& v
     m_prog->release();
 
     // Normals visualization for points (requires normals and program)
-    if (cfg.showPoints && m_hasPointNormal && m_progNormals && m_pointCount > 0) {
+    if (cfg.showNormals && m_hasPointNormal && m_progNormals && m_pointCount > 0) {
         m_progNormals->bind();
         m_progNormals->setUniformValue(m_locMvpN, mvp);
         // A default bluish color for normals

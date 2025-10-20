@@ -6,7 +6,8 @@ class QMainWindow;
 
 struct RenderSettings {
     bool showPoints {true};
-    bool showMesh {true};
+    bool showNormals {false};
+    bool showMesh {false};
     bool wireframe {false};
     int  pointSize {3};
     QVector3D meshColor {0.85f, 0.85f, 0.9f};
