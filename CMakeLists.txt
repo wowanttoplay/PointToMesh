@@ -34,15 +34,15 @@ set(CMAKE_AUTOUIC ON)
 # Sources
 add_executable(PointToMesh
     main.cpp
-    src/UI/ScalarControlWidget.cpp
-    src/UI/ScalarControlWidget.h
-    src/UI/ColorSwatch.cpp
-    src/UI/ColorSwatch.h
+        src/UI/CustomUI/ScalarControlWidget.cpp
+        src/UI/CustomUI/ScalarControlWidget.h
+        src/UI/CustomUI/ColorSwatch.cpp
+        src/UI/CustomUI/ColorSwatch.h
     src/UI/mainwindow.cpp
     src/UI/mainwindow.h
     src/UI/mainwindow.ui
-    src/UI/LogPanel.cpp
-    src/UI/LogPanel.h
+        src/UI/CustomUI/LogPanel.cpp
+        src/UI/CustomUI/LogPanel.h
     src/UI/ViewSettingsDialog.cpp
     src/UI/ViewSettingsDialog.h
     src/UI/ViewSettingsDialog.ui

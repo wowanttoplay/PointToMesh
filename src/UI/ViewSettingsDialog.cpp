@@ -2,8 +2,8 @@
 #include "ui_ViewSettingsDialog.h"
 #include "../Settings/SettingsManager.h"
 #include "../Rendering/RenderView.h"
-#include "ScalarControlWidget.h"
-#include "ColorSwatch.h"
+#include "CustomUI/ScalarControlWidget.h"
+#include "CustomUI/ColorSwatch.h"
 #include <QAction>
 #include <QCheckBox>
 #include <QColor>

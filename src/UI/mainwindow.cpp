@@ -6,7 +6,7 @@
 
 #include "mainwindow.h"
 #include "ui_MainWindow.h"
-#include "LogPanel.h"
+#include "CustomUI/LogPanel.h"
 #include "../Rendering/RenderView.h"
 #include "../Presentation/PointCloudController.h"
 #include "../DataProcess/CGALPointCloudProcessor.h"
