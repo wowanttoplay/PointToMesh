@@ -28,17 +28,29 @@ This script will check for key dependencies (like CMake, Git, and Homebrew/vcpkg
 
 ### On Windows (Recommended)
 
-The recommended workflow on Windows is to use Visual Studio 2022, which will automatically manage dependencies using its integrated vcpkg.
+The recommended workflow on Windows is to use Visual Studio 2022. This project includes a Windows CMake preset that expects vcpkg at `C:\vcpkg` so it can find the toolchain automatically.
 
 1.  **Prerequisite**: Install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/). Make sure to include the **"Desktop development with C++"** workload during installation.
 
-2. **Location**: One important note: Due to Windows' path length limitations, it is recommended to place your project in a very short path such as Documents or the C: drive. Otherwise, CMake compilation may fail.
+2.  **Install or locate vcpkg**:
+    -  Recommended: install vcpkg to `C:\vcpkg` so the preset works out of the box:
+       -  Open PowerShell and run:
+          ```powershell
+          git clone https://github.com/microsoft/vcpkg C:\vcpkg
+          C:\vcpkg\bootstrap-vcpkg.bat
+          ```
+    -  If you already have vcpkg elsewhere, update the preset to match your path:
+       -  Open `CMakePresets.json` and change
+         -  `CMAKE_TOOLCHAIN_FILE` to `C:/path/to/your/vcpkg/scripts/buildsystems/vcpkg.cmake`
+         -  adjust `VCPKG_TARGET_TRIPLET` if needed (default is `x64-windows`).
 
-3.  **Open Project**: Launch Visual Studio 2022 and use the "Open a local folder" option to open the cloned project directory.
+3.  **Location (path length limits)**: Windows has path length limitations that can break CMake/Ninja builds. Keep the project directory near the root (e.g., `C:\src\PointToMesh` or `C:\Users\<you>\src\PointToMesh`) and avoid very deep folder hierarchies.
 
-4.  **Automatic Dependency Installation**: Visual Studio will automatically detect the `vcpkg.json` file and start downloading and building the Qt and CGAL dependencies. You can monitor the progress in the "Output" window.
+4.  **Open Project**: Launch Visual Studio 2022 and use the "Open a local folder" option to open the cloned project directory.
 
-5.  **Build and Run**: Once CMake generation and dependency installation are complete, select the `PointToMesh.exe` target from the "Select Startup Item" dropdown in the toolbar and press the green "Run" button.
+5.  **Automatic Dependency Installation**: Visual Studio will detect the `vcpkg.json` manifest and the toolchain from the preset, then download/build Qt and CGAL using your vcpkg. You can monitor progress in the "Output" window.
+
+6.  **Build and Run**: Once CMake generation and dependency installation are complete, select the `PointToMesh.exe` target from the "Select Startup Item" dropdown in the toolbar and press the green "Run" button.
 
 ### On macOS (Recommended)
 
