@@ -68,6 +68,7 @@ add_executable(PointToMesh
     src/DataProcess/CGALPointCloudProcessor.cpp
     src/DataProcess/CGALPointCloudProcessor.h
     src/DataProcess/PointCloudProcessor.h
+    resources/resources.qrc
 )
 
 # Add include directories
@@ -89,15 +90,9 @@ target_link_libraries(PointToMesh PRIVATE
     Eigen3::Eigen
 )
 
+# Keep a hook for Windows packaging via windeployqt; no longer copy resources post-build
 set(POST_BUILD_COMMANDS "")
 set(POST_BUILD_COMMENTS "")
-
-list(APPEND POST_BUILD_COMMANDS
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/resources
-        $<TARGET_FILE_DIR:PointToMesh>/resources
-)
-list(APPEND POST_BUILD_COMMENTS "Copying project resources...")
 
 if (WIN32)
     # Locate windeployqt within vcpkg install paths on Windows

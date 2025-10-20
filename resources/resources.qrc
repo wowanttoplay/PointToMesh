@@ -1,0 +1,9 @@
+<RCC>
+  <qresource prefix="/resources/">
+    <file>shaders/basic.vert</file>
+    <file>shaders/basic.frag</file>
+    <file>shaders/normals.vert</file>
+    <file>shaders/normals.geom</file>
+    <file>shaders/normals.frag</file>
+  </qresource>
+</RCC>

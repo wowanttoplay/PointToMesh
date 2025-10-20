@@ -4,6 +4,11 @@
 
 class QMainWindow;
 
+struct ClipPlaneParams {
+    bool clipEnabled {true};
+    QVector4D clipPlane {0.0f, 1.0f, 0.0f, 0.0f}; // normal + d
+};
+
 struct RenderSettings {
     bool showPoints {true};
     bool showNormals {false};
@@ -15,6 +20,9 @@ struct RenderSettings {
     QVector3D wireColor {0.1f, 0.1f, 0.1f};
     // Camera interaction
     float cameraSpeed {3.0f};
+
+    // Clip plane
+    ClipPlaneParams clipPlaneParams;
 };
 
 class SettingsManager {
