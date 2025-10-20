@@ -19,7 +19,7 @@ static inline QVector3D toVec3(const QColor& c) {
 }
 }
 
-ViewSettingsDialog::ViewSettingsDialog(RenderView* view, QWidget* parent)
+ViewSettingsDialog::ViewSettingsDialog(QWidget* parent, RenderView* view)
     : QDockWidget(parent), ui(new Ui::ViewSettingsDialog), m_view(view) {
     ui->setupUi(this);
 

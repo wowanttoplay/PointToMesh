@@ -67,6 +67,9 @@ add_executable(PointToMesh
     src/DataProcess/CGALPointCloudProcessor.h
     src/DataProcess/PointCloudProcessor.h
     resources/resources.qrc
+        src/UI/splitplanedocker.cpp
+        src/UI/splitplanedocker.h
+        src/UI/splitplanedocker.ui
 )
 
 # Add include directories

@@ -12,7 +12,7 @@ QT_END_NAMESPACE
 class ViewSettingsDialog : public QDockWidget {
     Q_OBJECT
 public:
-    explicit ViewSettingsDialog(RenderView* view, QWidget* parent = nullptr);
+    explicit ViewSettingsDialog(QWidget* parent = nullptr, RenderView* view = nullptr);
     ~ViewSettingsDialog() override;
 
 private:

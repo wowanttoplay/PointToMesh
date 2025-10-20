@@ -14,6 +14,8 @@
 #include <QtGlobal>
 #include <QAction>
 #include <QDockWidget>
+
+#include "splitplanedocker.h"
 #include "../Settings//WindowStateGuard.h"
 #include "ViewSettingsDialog.h"
 
@@ -74,7 +76,7 @@ MainWindow::~MainWindow() = default;
 void MainWindow::ConnectViewSettings() {
     // Create the dock if not existing yet
     if (!m_viewSettingsDialog) {
-        m_viewSettingsDialog = new ViewSettingsDialog(m_renderView, this);
+        m_viewSettingsDialog = new ViewSettingsDialog(this, m_renderView);
         addDockWidget(Qt::RightDockWidgetArea, m_viewSettingsDialog);
 
         // Prefer Qt's built-in toggle action for show/hide
@@ -84,6 +86,21 @@ void MainWindow::ConnectViewSettings() {
                 ui->actionViewSettings->setVisible(false);
             }
             ui->menuView->addAction(m_viewSettingsDialog->toggleViewAction());
+        }
+    }
+}
+
+void MainWindow::ConnectSplitPlaneControls() {
+    if (!m_splitPlaneDocker) {
+        m_splitPlaneDocker = new SplitPlaneDocker(this);
+        addDockWidget(Qt::AllDockWidgetAreas, m_splitPlaneDocker);
+
+        if (ui->menuView) {
+            if (ui->actionSplitPlaneSettings) {
+                ui->menuView->removeAction(ui->actionSplitPlaneSettings);
+                ui->actionSplitPlaneSettings->setVisible(false);
+            }
+            ui->menuView->addAction(m_splitPlaneDocker->toggleViewAction());
         }
     }
 }

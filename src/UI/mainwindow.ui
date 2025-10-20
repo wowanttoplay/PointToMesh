@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>24</height>
+     <height>34</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -43,6 +43,7 @@
      <string>View</string>
     </property>
     <addaction name="actionViewSettings"/>
+    <addaction name="actionSplitPlaneSettings"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
@@ -51,7 +52,7 @@
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidget">
    <property name="features">
-    <set>QDockWidget::DockWidgetMovable|QDockWidget::DockWidgetFloatable</set>
+    <set>QDockWidget::DockWidgetFeature::DockWidgetFloatable|QDockWidget::DockWidgetFeature::DockWidgetMovable</set>
    </property>
    <property name="windowTitle">
     <string>Output</string>
@@ -60,9 +61,7 @@
     <number>8</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <!-- Intentionally left empty; LogPanel will be added at runtime -->
-    </layout>
+    <layout class="QVBoxLayout" name="verticalLayout"/>
    </widget>
   </widget>
   <action name="actionImport">
@@ -101,14 +100,15 @@
     <string>View Settings</string>
    </property>
   </action>
+  <action name="actionSplitPlaneSettings">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Split Plane Settings</string>
+   </property>
+  </action>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QOpenGLWidget</class>
-   <extends>QWidget</extends>
-   <header>qopenglwidget.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>
