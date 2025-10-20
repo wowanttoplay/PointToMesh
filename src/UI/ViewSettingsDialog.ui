@@ -81,12 +81,12 @@
   <customwidget>
    <class>ScalarControlWidget</class>
    <extends>QWidget</extends>
-   <header>src/UI/ScalarControlWidget.h</header>
+   <header>src/UI/CustomUI/ScalarControlWidget.h</header>
   </customwidget>
   <customwidget>
    <class>ColorSwatch</class>
    <extends>QWidget</extends>
-   <header>src/UI/ColorSwatch.h</header>
+   <header>src/UI/CustomUI/ColorSwatch.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

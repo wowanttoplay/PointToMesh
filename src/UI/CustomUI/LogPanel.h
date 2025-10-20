@@ -1,15 +1,15 @@
-#ifndef POINTTOMESH_LOGPANEL_H
-#define POINTTOMESH_LOGPANEL_H
+#ifndef POINTTOMESH_LOGDOCKWIDGET_H
+#define POINTTOMESH_LOGDOCKWIDGET_H
 
-#include <QWidget>
+#include <QDockWidget>
 #include <QPointer>
 
 class QPlainTextEdit;
 
-class LogPanel : public QWidget {
+class LogPanel : public QDockWidget {
     Q_OBJECT
 public:
-    explicit LogPanel(QWidget* parent = nullptr);
+    explicit LogPanel(const QString &title, QWidget* parent = nullptr);
     ~LogPanel() override;
 
 public slots:
@@ -20,4 +20,4 @@ private:
     QPointer<QPlainTextEdit> m_text;
 };
 
-#endif // POINTTOMESH_LOGPANEL_H
+#endif // POINTTOMESH_LOGDOCKWIDGET_H

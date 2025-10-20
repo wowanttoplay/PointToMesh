@@ -105,7 +105,15 @@ void MainWindow::ConnectSplitPlaneControls() {
 
 void MainWindow::ConnectLogView() {
     if (!m_logPanel) {
-        m_logPanel = new LogPanel(this);
-        ui->dockWidget->setWidget(m_logPanel);
+        m_logPanel = new LogPanel("Output", this);
+        addDockWidget(Qt::BottomDockWidgetArea, m_logPanel);
+
+        if (ui->menuView) {
+            if (ui->actionOutputView) {
+                ui->menuView->removeAction(ui->actionOutputView);
+                ui->actionOutputView->setVisible(false);
+            }
+            ui->menuView->addAction(m_logPanel->toggleViewAction());
+        }
     }
 }

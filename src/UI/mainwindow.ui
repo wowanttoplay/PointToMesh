@@ -44,27 +44,13 @@
     </property>
     <addaction name="actionViewSettings"/>
     <addaction name="actionSplitPlaneSettings"/>
-    <addaction name="actionOutput_View"/>
+    <addaction name="actionOutputView"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
    <addaction name="menuView"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QDockWidget" name="dockWidget">
-   <property name="features">
-    <set>QDockWidget::DockWidgetFeature::DockWidgetFloatable|QDockWidget::DockWidgetFeature::DockWidgetMovable</set>
-   </property>
-   <property name="windowTitle">
-    <string>Output</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>8</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout"/>
-   </widget>
-  </widget>
   <action name="actionImport">
    <property name="text">
     <string>Import</string>
@@ -109,7 +95,7 @@
     <string>Split Plane Settings</string>
    </property>
   </action>
-  <action name="actionOutput_View">
+  <action name="actionOutputView">
    <property name="text">
     <string>Output View</string>
    </property>
