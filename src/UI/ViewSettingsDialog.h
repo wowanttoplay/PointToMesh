@@ -16,7 +16,7 @@ class ViewSettingsDialog : public QDockWidget {
     Q_OBJECT
 public:
     // Accept an optional toggle action so binder can sync dock visibility <-> action
-    explicit ViewSettingsDialog(RenderView* view, QAction* toggleAction = nullptr, QWidget* parent = nullptr);
+    explicit ViewSettingsDialog(RenderView* view, QWidget* parent = nullptr);
     ~ViewSettingsDialog() override;
 
 private:

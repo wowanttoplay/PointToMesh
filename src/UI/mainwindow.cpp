@@ -72,11 +72,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
 MainWindow::~MainWindow() = default;
 
 void MainWindow::ConnectViewSettings() {
-    if (!ui->actionViewSettings)
-        return;
-
+    // Create the dock if not existing yet
     if (!m_viewSettingsDialog) {
-        m_viewSettingsDialog = new ViewSettingsDialog(m_renderView, ui->actionViewSettings, this);
+        m_viewSettingsDialog = new ViewSettingsDialog(m_renderView, this);
         addDockWidget(Qt::RightDockWidgetArea, m_viewSettingsDialog);
+
+        // Prefer Qt's built-in toggle action for show/hide
+        if (ui->menuView) {
+            if (ui->actionViewSettings) {
+                ui->menuView->removeAction(ui->actionViewSettings);
+                ui->actionViewSettings->setVisible(false);
+            }
+            ui->menuView->addAction(m_viewSettingsDialog->toggleViewAction());
+        }
     }
 }

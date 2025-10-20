@@ -13,8 +13,6 @@ class ViewSettingsBinder : public QObject {
     Q_OBJECT
 public:
     ViewSettingsBinder(RenderView* view,
-                       QDockWidget* viewSettingsDock,
-                       QAction* viewSettingsAction,
                        QCheckBox* chkShowPoints,
                        QCheckBox* chkShowNormals,
                        QCheckBox* chkShowMesh,

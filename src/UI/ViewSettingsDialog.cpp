@@ -4,20 +4,18 @@
 #include "../Rendering/RenderView.h"
 #include <QAction>
 
-ViewSettingsDialog::ViewSettingsDialog(RenderView* view, QAction* toggleAction, QWidget* parent)
+ViewSettingsDialog::ViewSettingsDialog(RenderView* view, QWidget* parent)
     : QDockWidget(parent), ui(new Ui::ViewSettingsDialog), m_view(view) {
     ui->setupUi(this);
 
     // Dock widget appearance/behavior
     setWindowTitle(tr("View Settings"));
     setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
-    setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    setAllowedAreas(Qt::AllDockWidgetAreas);
 
     // Bind the controls inside the dock
     m_binder = std::make_unique<ViewSettingsBinder>(
         m_view,
-        /*viewSettingsDock*/ this,
-        /*viewSettingsAction*/ toggleAction,
         ui->chkShowPoints,
         ui->chkShowNormals,
         ui->chkShowMesh,
