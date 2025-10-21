@@ -31,6 +31,8 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
+    void ConnectReconstructions();
+
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 

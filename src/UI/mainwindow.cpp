@@ -22,6 +22,7 @@
 #include "../DataProcess/BaseInputParameter.h"
 
 
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_unique<Ui::MainWindow>()) {
     ui->setupUi(this);
 
@@ -54,53 +55,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
 
     // Optional reconstruct action if present
     // When reconstruction actions are triggered, open a persistent parameter dialog for the selected method.
-    if (auto a = findChild<QAction*>("actionReconstructPoisson")) {
-        connect(a, &QAction::triggered, this, [this]{
-            using namespace std;
-            if (!m_poissonParamDialog) {
-                // params owned by MainWindow (parent=this) so they live until app close; safe to reuse
-                auto *params = new PoissonReconstructionParameter(this);
-                m_poissonParamDialog = new ParameterDialog(params, this);
-                connect(m_poissonParamDialog, &ParameterDialog::applyClicked, this, [this](BaseInputParameter* p){
-                    Q_UNUSED(p);
-                    if (m_controller) m_controller->runReconstructionWith(MeshGenerationMethod::POISSON_RECONSTRUCTION);
-                });
-            }
-            m_poissonParamDialog->show();
-            m_poissonParamDialog->raise();
-            m_poissonParamDialog->activateWindow();
-        });
-    }
-    if (auto a = findChild<QAction*>("actionReconstructScaleSpace")) {
-        connect(a, &QAction::triggered, this, [this]{
-            if (!m_scaleSpaceParamDialog) {
-                auto *params = new ScaleSpaceReconstructionParameter(this);
-                m_scaleSpaceParamDialog = new ParameterDialog(params, this);
-                connect(m_scaleSpaceParamDialog, &ParameterDialog::applyClicked, this, [this](BaseInputParameter* p){
-                    Q_UNUSED(p);
-                    if (m_controller) m_controller->runReconstructionWith(MeshGenerationMethod::SCALE_SPACE_RECONSTRUCTION);
-                });
-            }
-            m_scaleSpaceParamDialog->show();
-            m_scaleSpaceParamDialog->raise();
-            m_scaleSpaceParamDialog->activateWindow();
-        });
-    }
-    if (auto a = findChild<QAction*>("actionReconstructAdvancingFront")) {
-        connect(a, &QAction::triggered, this, [this]{
-            if (!m_advancingFrontParamDialog) {
-                auto *params = new AdvancingFrontReconstructionParameter(this);
-                m_advancingFrontParamDialog = new ParameterDialog(params, this);
-                connect(m_advancingFrontParamDialog, &ParameterDialog::applyClicked, this, [this](BaseInputParameter* p){
-                    Q_UNUSED(p);
-                    if (m_controller) m_controller->runReconstructionWith(MeshGenerationMethod::ADVANCING_FRONT_RECONSTRUCTION);
-                });
-            }
-            m_advancingFrontParamDialog->show();
-            m_advancingFrontParamDialog->raise();
-            m_advancingFrontParamDialog->activateWindow();
-        });
-    }
+    ConnectReconstructions();
 
     // Create View Settings dock before restoring window state, so visibility/layout can be restored
     ConnectViewSettings();
@@ -156,5 +111,55 @@ void MainWindow::ConnectLogView() {
             }
             ui->menuView->addAction(m_logPanel->toggleViewAction());
         }
+    }
+}
+
+
+void MainWindow::ConnectReconstructions() {
+    if (auto a = findChild<QAction*>("actionReconstructPoisson")) {
+        connect(a, &QAction::triggered, this, [this]{
+            if (!m_poissonParamDialog) {
+                // params owned by MainWindow (parent=this) so they live until app close; safe to reuse
+                auto *params = new PoissonReconstructionParameter(this);
+                m_poissonParamDialog = new ParameterDialog(params, this);
+                connect(m_poissonParamDialog, &ParameterDialog::applyClicked, this, [this](BaseInputParameter* p){
+                    Q_UNUSED(p);
+                    if (m_controller) m_controller->runReconstructionWith(MeshGenerationMethod::POISSON_RECONSTRUCTION);
+                });
+            }
+            m_poissonParamDialog->show();
+            m_poissonParamDialog->raise();
+            m_poissonParamDialog->activateWindow();
+        });
+    }
+    if (auto a = findChild<QAction*>("actionReconstructScaleSpace")) {
+        connect(a, &QAction::triggered, this, [this]{
+            if (!m_scaleSpaceParamDialog) {
+                auto *params = new ScaleSpaceReconstructionParameter(this);
+                m_scaleSpaceParamDialog = new ParameterDialog(params, this);
+                connect(m_scaleSpaceParamDialog, &ParameterDialog::applyClicked, this, [this](BaseInputParameter* p){
+                    Q_UNUSED(p);
+                    if (m_controller) m_controller->runReconstructionWith(MeshGenerationMethod::SCALE_SPACE_RECONSTRUCTION);
+                });
+            }
+            m_scaleSpaceParamDialog->show();
+            m_scaleSpaceParamDialog->raise();
+            m_scaleSpaceParamDialog->activateWindow();
+        });
+    }
+    if (auto a = findChild<QAction*>("actionReconstructAdvancingFront")) {
+        connect(a, &QAction::triggered, this, [this]{
+            if (!m_advancingFrontParamDialog) {
+                auto *params = new AdvancingFrontReconstructionParameter(this);
+                m_advancingFrontParamDialog = new ParameterDialog(params, this);
+                connect(m_advancingFrontParamDialog, &ParameterDialog::applyClicked, this, [this](BaseInputParameter* p){
+                    Q_UNUSED(p);
+                    if (m_controller) m_controller->runReconstructionWith(MeshGenerationMethod::ADVANCING_FRONT_RECONSTRUCTION);
+                });
+            }
+            m_advancingFrontParamDialog->show();
+            m_advancingFrontParamDialog->raise();
+            m_advancingFrontParamDialog->activateWindow();
+        });
     }
 }
