@@ -99,6 +99,62 @@ void ProcessingWorker::reconstructWith(MeshGenerationMethod method) {
     emit logMessage(methodName + QStringLiteral(" finished."));
 }
 
+void ProcessingWorker::reconstructWithParams(MeshGenerationMethod method, BaseInputParameter* params) {
+    // Take ownership in a unique_ptr to ensure deletion in this thread
+    std::unique_ptr<BaseInputParameter> guard(params);
+    if (!m_proc) { emit logMessage("Processor not initialized."); return; }
+
+    const auto methodName = [method]() -> QString {
+        switch (method) {
+            case MeshGenerationMethod::POISSON_RECONSTRUCTION: return QStringLiteral("Poisson Reconstruction");
+            case MeshGenerationMethod::SCALE_SPACE_RECONSTRUCTION: return QStringLiteral("Scale-Space Reconstruction");
+            case MeshGenerationMethod::ADVANCING_FRONT_RECONSTRUCTION: return QStringLiteral("Advancing Front Reconstruction");
+            default: return QStringLiteral("Unknown Reconstruction");
+        }
+    }();
+
+    if (method == MeshGenerationMethod::POISSON_RECONSTRUCTION && !m_proc->hasNormals()) {
+        emit logMessage(QStringLiteral("Estimating normals (required for Poisson)..."));
+        if (!m_proc->estimateNormals()) {
+            emit logMessage(QStringLiteral("Normal estimation failed."));
+            return;
+        }
+    }
+
+    emit logMessage(QStringLiteral("Running ") + methodName + QStringLiteral(" with parameters..."));
+    if (!m_proc->processToMesh(method, guard.get())) {
+        emit logMessage(methodName + QStringLiteral(" failed."));
+        return;
+    }
+
+    const auto& mesh = m_proc->getMesh();
+
+    auto model = std::make_shared<MeshModel>();
+    const auto nv = static_cast<std::size_t>(num_vertices(mesh));
+    model->vertices.reserve(nv);
+
+    std::vector<std::uint32_t> vmap(nv);
+    std::uint32_t idx = 0;
+    for (auto v : mesh.vertices()) {
+        const auto& p = mesh.point(v);
+        model->vertices.emplace_back(static_cast<float>(p.x()), static_cast<float>(p.y()), static_cast<float>(p.z()));
+        vmap[static_cast<std::size_t>(v.idx())] = idx++;
+    }
+
+    for (auto f : mesh.faces()) {
+        std::vector<std::uint32_t> faceIdx;
+        for (auto v : CGAL::vertices_around_face(mesh.halfedge(f), mesh)) {
+            faceIdx.push_back(vmap[static_cast<std::size_t>(v.idx())]);
+        }
+        if (faceIdx.size() == 3) {
+            model->indices.insert(model->indices.end(), { faceIdx[0], faceIdx[1], faceIdx[2] });
+        }
+    }
+
+    emit meshReady(model);
+    emit logMessage(methodName + QStringLiteral(" finished."));
+}
+
 void ProcessingWorker::exportMeshTo(const QString& filePath, bool withNormals) {
     if (!m_proc) { emit logMessage("Processor not initialized."); return; }
     const std::string path = filePath.toStdString();

@@ -11,14 +11,16 @@ PointCloudController::PointCloudController(std::unique_ptr<PointCloudProcessor> 
     m_worker = new ProcessingWorker(std::move(proc));
     m_worker->moveToThread(&m_thread);
 
-    // Ensure enum is known to Qt for queued connections
+    // Ensure enums and pointer types are known to Qt for queued connections
     qRegisterMetaType<MeshGenerationMethod>("MeshGenerationMethod");
+    qRegisterMetaType<BaseInputParameter*>("BaseInputParameter*");
 
     connect(&m_thread, &QThread::finished, m_worker, &QObject::deleteLater);
 
     // Upstream wiring: controller -> worker (queued)
     connect(this, &PointCloudController::workerImport,      m_worker, &ProcessingWorker::importPointCloud, Qt::QueuedConnection);
     connect(this, &PointCloudController::workerReconstructWith, m_worker, &ProcessingWorker::reconstructWith, Qt::QueuedConnection);
+    connect(this, &PointCloudController::workerReconstructWithParams, m_worker, &ProcessingWorker::reconstructWithParams, Qt::QueuedConnection);
     connect(this, &PointCloudController::workerExport,      m_worker, &ProcessingWorker::exportMeshTo,      Qt::QueuedConnection);
 
     // Downstream wiring: worker -> controller
@@ -40,6 +42,12 @@ void PointCloudController::importFromFile(const QString& path) {
 
 void PointCloudController::runReconstructionWith(MeshGenerationMethod method) {
     emit workerReconstructWith(method);
+}
+
+void PointCloudController::runReconstructionWith(MeshGenerationMethod method, std::unique_ptr<BaseInputParameter> params) {
+    // Transfer raw pointer to worker ownership; we'll release here and let worker delete
+    BaseInputParameter* raw = params.release();
+    emit workerReconstructWithParams(method, raw);
 }
 
 void PointCloudController::exportMesh(const QString& path, bool withNormals) {

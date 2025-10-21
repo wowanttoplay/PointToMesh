@@ -25,6 +25,7 @@ public:
     bool AdvancingFrontReconstruction();
 
     bool processToMesh(MeshGenerationMethod meshMethod = MeshGenerationMethod::POISSON_RECONSTRUCTION) override;
+    bool processToMesh(MeshGenerationMethod meshMethod, const BaseInputParameter* params) override;
     bool exportMesh(const std::string& filePath, bool withNormals = false) override;
     bool computeMeshNormals() override;
 

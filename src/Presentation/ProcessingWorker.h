@@ -4,6 +4,7 @@
 #include <QString>
 #include "../DataProcess/PointCloudProcessor.h"
 #include "../Model/Geometry.h"
+#include "../DataProcess/BaseInputParameter.h"
 
 class ProcessingWorker : public QObject {
     Q_OBJECT
@@ -14,6 +15,8 @@ public:
 public slots:
     void importPointCloud(const QString& filePath);
     void reconstructWith(MeshGenerationMethod method);
+    // Parameterized reconstruction; takes ownership of params and deletes it in worker thread
+    void reconstructWithParams(MeshGenerationMethod method, BaseInputParameter* params);
     void exportMeshTo(const QString& filePath, bool withNormals);
 
 signals:

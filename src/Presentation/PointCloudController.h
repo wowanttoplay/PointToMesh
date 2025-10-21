@@ -5,6 +5,7 @@
 #include <QString>
 #include "ProcessingWorker.h"
 #include "../Model/Geometry.h"
+#include "../DataProcess/BaseInputParameter.h"
 
 class PointCloudProcessor;
 
@@ -13,6 +14,9 @@ class PointCloudController : public QObject {
 public:
     explicit PointCloudController(std::unique_ptr<PointCloudProcessor> proc, QObject* parent = nullptr);
     ~PointCloudController() override;
+
+    // Overload that accepts a parameter object; ownership will be transferred to the worker thread
+    void runReconstructionWith(MeshGenerationMethod method, std::unique_ptr<BaseInputParameter> params);
 
 public slots:
     void importFromFile(const QString& path);
@@ -28,6 +32,7 @@ signals:
     void workerImport(const QString& path);
     void workerReconstruct();
     void workerReconstructWith(MeshGenerationMethod method);
+    void workerReconstructWithParams(MeshGenerationMethod method, BaseInputParameter* params); // takes ownership
     void workerExport(const QString& path, bool withNormals);
 
 private slots:

@@ -123,8 +123,11 @@ void MainWindow::ConnectReconstructions() {
                 auto *params = new PoissonReconstructionParameter(this);
                 m_poissonParamDialog = new ParameterDialog(params, this);
                 connect(m_poissonParamDialog, &ParameterDialog::applyClicked, this, [this](BaseInputParameter* p){
-                    Q_UNUSED(p);
-                    if (m_controller) m_controller->runReconstructionWith(MeshGenerationMethod::POISSON_RECONSTRUCTION);
+                    if (m_controller) {
+                        std::unique_ptr<BaseInputParameter> snapshot;
+                        if (p) snapshot = p->clone();
+                        m_controller->runReconstructionWith(MeshGenerationMethod::POISSON_RECONSTRUCTION, std::move(snapshot));
+                    }
                 });
             }
             m_poissonParamDialog->show();
@@ -138,8 +141,11 @@ void MainWindow::ConnectReconstructions() {
                 auto *params = new ScaleSpaceReconstructionParameter(this);
                 m_scaleSpaceParamDialog = new ParameterDialog(params, this);
                 connect(m_scaleSpaceParamDialog, &ParameterDialog::applyClicked, this, [this](BaseInputParameter* p){
-                    Q_UNUSED(p);
-                    if (m_controller) m_controller->runReconstructionWith(MeshGenerationMethod::SCALE_SPACE_RECONSTRUCTION);
+                    if (m_controller) {
+                        std::unique_ptr<BaseInputParameter> snapshot;
+                        if (p) snapshot = p->clone();
+                        m_controller->runReconstructionWith(MeshGenerationMethod::SCALE_SPACE_RECONSTRUCTION, std::move(snapshot));
+                    }
                 });
             }
             m_scaleSpaceParamDialog->show();
@@ -153,8 +159,11 @@ void MainWindow::ConnectReconstructions() {
                 auto *params = new AdvancingFrontReconstructionParameter(this);
                 m_advancingFrontParamDialog = new ParameterDialog(params, this);
                 connect(m_advancingFrontParamDialog, &ParameterDialog::applyClicked, this, [this](BaseInputParameter* p){
-                    Q_UNUSED(p);
-                    if (m_controller) m_controller->runReconstructionWith(MeshGenerationMethod::ADVANCING_FRONT_RECONSTRUCTION);
+                    if (m_controller) {
+                        std::unique_ptr<BaseInputParameter> snapshot;
+                        if (p) snapshot = p->clone();
+                        m_controller->runReconstructionWith(MeshGenerationMethod::ADVANCING_FRONT_RECONSTRUCTION, std::move(snapshot));
+                    }
                 });
             }
             m_advancingFrontParamDialog->show();

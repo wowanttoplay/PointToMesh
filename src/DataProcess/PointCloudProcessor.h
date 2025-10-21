@@ -6,6 +6,8 @@
 #include <memory>
 #include <QMetaType>
 
+#include "BaseInputParameter.h"
+
 // We use CGAL types for the interface, as it's our primary library.
 // This simplifies the design, but for a truly generic library,
 // one might define library-agnostic data structures.
@@ -75,6 +77,17 @@ public:
      * @return True if processing was successful, false otherwise.
      */
     virtual bool processToMesh(MeshGenerationMethod meshMethod = MeshGenerationMethod::POISSON_RECONSTRUCTION) = 0;
+
+    /**
+     * @brief Processes the loaded point cloud into a mesh with the given parameters.
+     *        Implementations may dynamically cast to the expected parameter type per method.
+     * @param meshMethod The algorithm to use for mesh generation.
+     * @param params Optional parameters object (may be null). Ownership is not taken here.
+     */
+    virtual bool processToMesh(MeshGenerationMethod meshMethod, const BaseInputParameter* params) {
+        Q_UNUSED(params);
+        return processToMesh(meshMethod);
+    }
 
     /**
      * @brief Exports the generated mesh to a file.

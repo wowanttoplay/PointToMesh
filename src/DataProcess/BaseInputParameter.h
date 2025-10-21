@@ -6,12 +6,16 @@
 #define POINTTOMESH_BASEINPUTPARAMETER_H
 
 #include <QObject>
+#include <memory>
 
 class BaseInputParameter : public QObject {
     Q_OBJECT
 public:
     explicit BaseInputParameter(QObject *parent = nullptr) : QObject(parent) {}
     ~BaseInputParameter() override = default;
+
+    // Create a deep copy without a QObject parent (safe to move across threads)
+    virtual std::unique_ptr<BaseInputParameter> clone() const = 0;
 };
 
 class PoissonReconstructionParameter : public BaseInputParameter {
@@ -27,6 +31,16 @@ public:
     explicit PoissonReconstructionParameter(QObject *parent = nullptr) : BaseInputParameter(parent) {}
     ~PoissonReconstructionParameter() override = default;
 
+    std::unique_ptr<BaseInputParameter> clone() const override {
+        auto copy = std::make_unique<PoissonReconstructionParameter>();
+        copy->angle = angle;
+        copy->radius = radius;
+        copy->distance = distance;
+        copy->neighbors_number = neighbors_number;
+        copy->spacing_scale = spacing_scale;
+        return copy;
+    }
+
     double angle = 20.0;
     double radius = 30.0;
     double distance = 0.375;
@@ -41,6 +55,12 @@ public:
     explicit ScaleSpaceReconstructionParameter(QObject *parent = nullptr) : BaseInputParameter(parent) {}
     ~ScaleSpaceReconstructionParameter() override = default;
 
+    std::unique_ptr<BaseInputParameter> clone() const override {
+        auto copy = std::make_unique<ScaleSpaceReconstructionParameter>();
+        copy->iterations_number = iterations_number;
+        return copy;
+    }
+
     int iterations_number = 4;
 };
 
@@ -49,6 +69,13 @@ class AdvancingFrontReconstructionParameter : public BaseInputParameter {
 public:
     explicit AdvancingFrontReconstructionParameter(QObject *parent = nullptr) : BaseInputParameter(parent) {}
     ~AdvancingFrontReconstructionParameter() override = default;
+
+    std::unique_ptr<BaseInputParameter> clone() const override {
+        return std::make_unique<AdvancingFrontReconstructionParameter>();
+    }
 };
+
+// Make pointer type available for queued connections
+Q_DECLARE_METATYPE(BaseInputParameter*)
 
 #endif //POINTTOMESH_BASEINPUTPARAMETER_H
