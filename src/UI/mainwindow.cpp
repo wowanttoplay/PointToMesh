@@ -65,9 +65,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
                     Q_UNUSED(p);
                     if (m_controller) m_controller->runReconstructionWith(MeshGenerationMethod::POISSON_RECONSTRUCTION);
                 });
-                connect(m_poissonParamDialog, &QDialog::accepted, this, [this]{
-                    if (m_controller) m_controller->runReconstructionWith(MeshGenerationMethod::POISSON_RECONSTRUCTION);
-                });
             }
             m_poissonParamDialog->show();
             m_poissonParamDialog->raise();
@@ -83,9 +80,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
                     Q_UNUSED(p);
                     if (m_controller) m_controller->runReconstructionWith(MeshGenerationMethod::SCALE_SPACE_RECONSTRUCTION);
                 });
-                connect(m_scaleSpaceParamDialog, &QDialog::accepted, this, [this]{
-                    if (m_controller) m_controller->runReconstructionWith(MeshGenerationMethod::SCALE_SPACE_RECONSTRUCTION);
-                });
             }
             m_scaleSpaceParamDialog->show();
             m_scaleSpaceParamDialog->raise();
@@ -99,9 +93,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
                 m_advancingFrontParamDialog = new ParameterDialog(params, this);
                 connect(m_advancingFrontParamDialog, &ParameterDialog::applyClicked, this, [this](BaseInputParameter* p){
                     Q_UNUSED(p);
-                    if (m_controller) m_controller->runReconstructionWith(MeshGenerationMethod::ADVANCING_FRONT_RECONSTRUCTION);
-                });
-                connect(m_advancingFrontParamDialog, &QDialog::accepted, this, [this]{
                     if (m_controller) m_controller->runReconstructionWith(MeshGenerationMethod::ADVANCING_FRONT_RECONSTRUCTION);
                 });
             }

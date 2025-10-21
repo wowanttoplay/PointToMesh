@@ -25,7 +25,6 @@ signals:
     void applyClicked(BaseInputParameter* params);
 
 private slots:
-    void accept() override;
     void onApplyClicked();
 
 private:
