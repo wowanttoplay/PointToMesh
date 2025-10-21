@@ -18,12 +18,6 @@ public:
     bool loadPointCloud(const std::string& filePath) override;
     bool estimateNormals(NormalEstimationMethod normalMethod = NormalEstimationMethod::JET_ESTIMATION) override;
 
-    bool PoissonSurfaceReconstruction();
-
-    bool ScaleSpaceReconstruction();
-
-    bool AdvancingFrontReconstruction();
-
     bool processToMesh(MeshGenerationMethod meshMethod, const BaseInputParameter* params) override;
     bool exportMesh(const std::string& filePath, bool withNormals = false) override;
     bool computeMeshNormals() override;

@@ -1,6 +1,5 @@
 #include "CGALPointCloudProcessor.h"
 #include <iostream>
-#include <fstream>
 
 // CGAL I/O
 #include <CGAL/IO/read_points.h>
@@ -77,141 +76,23 @@ bool CGALPointCloudProcessor::estimateNormals(NormalEstimationMethod normalMetho
     }
 }
 
-bool CGALPointCloudProcessor::PoissonSurfaceReconstruction() {
-    if (!hasNormals()) {
-        std::cerr << "Error: Normals are required for Poisson mesh generation but were not found or estimated." << std::endl;
-        return false;
-    }
-    // Perform Poisson surface reconstruction (Delaunay-based variant for broader CGAL compatibility)
-    m_mesh.clear();
-    const double sm_angle = 20.0;     // Min triangle angle in degrees.
-    const double sm_radius = 30.0;    // Max triangle size w.r.t point set average spacing.
-    const double sm_distance = 0.375; // Approximation error w.r.t point set average spacing.
-    // Compute average spacing (k=6 neighbors)
-    const double spacing = CGAL::compute_average_spacing<CGAL::Sequential_tag>(
-        m_pointCloud, 6,
-        CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>())
-    );
-    const bool ok = CGAL::poisson_surface_reconstruction_delaunay(
-        m_pointCloud.begin(), m_pointCloud.end(),
-        CGAL::First_of_pair_property_map<PointWithNormal>(),
-        CGAL::Second_of_pair_property_map<PointWithNormal>(),
-        m_mesh,
-        spacing, sm_angle, sm_radius, sm_distance);
-    if (!ok) {
-        std::cerr << "Error: Poisson surface reconstruction failed." << std::endl;
-        return false;
-    }
-    return true;
-}
-
-bool CGALPointCloudProcessor::ScaleSpaceReconstruction() {
-    // Reconstruct using scale-space, which is robust to noise.
-    // This implementation uses the modern API of Scale_space_surface_reconstruction_3.
-
-    // 1. Prepare the input point cloud.
-    std::vector<Point> pts;
-    pts.reserve(m_pointCloud.size());
-    for (const auto& pn : m_pointCloud) {
-        pts.push_back(pn.first);
-    }
-
-    // 2. Initialize the reconstruction algorithm.
-    using SSSR = CGAL::Scale_space_surface_reconstruction_3<K>;
-    SSSR recon(pts.begin(), pts.end());
-
-    // 3. Set reconstruction parameters and perform smoothing.
-    recon.increase_scale(4);
-
-    // 4. Reconstruct the surface. The results are stored inside the 'recon' object.
-    recon.reconstruct_surface();
-
-    // 5. Build the final mesh (m_mesh) from the reconstruction results.
-    m_mesh.clear();
-
-    // Create a vector to hold vertex descriptors for the new mesh.
-    // This avoids adding the same point multiple times.
-    std::vector<Mesh::Vertex_index> vertex_descriptors;
-    vertex_descriptors.reserve(recon.number_of_points());
-
-    // Add all points from the reconstruction to m_mesh and store their descriptors.
-    // We use recon.points() to get the (potentially smoothed) vertex positions.
-    for (const auto& point : recon.points()) {
-        vertex_descriptors.push_back(m_mesh.add_vertex(point));
-    }
-
-    // Add all facets to m_mesh using the stored vertex descriptors.
-    // We use recon.facets() to get the triangle indices.
-    for (const auto& facet_indices : recon.facets()) {
-        // A facet is an array of 3 indices.
-        Mesh::Vertex_index v0 = vertex_descriptors[facet_indices[0]];
-        Mesh::Vertex_index v1 = vertex_descriptors[facet_indices[1]];
-        Mesh::Vertex_index v2 = vertex_descriptors[facet_indices[2]];
-
-        if (v0 != v1 && v1 != v2 && v2 != v0) {
-            m_mesh.add_face(v0, v1, v2);
-        }
-    }
-
-    // 6. The mesh is now populated. Return its status.
-    return !m_mesh.is_empty();
-}
-
-bool CGALPointCloudProcessor::AdvancingFrontReconstruction() {
-    // Advancing front reconstruction; does not require normals
-    std::vector<Point> pts;
-    pts.reserve(m_pointCloud.size());
-    for (const auto& pn : m_pointCloud) pts.push_back(pn.first);
-
-    std::vector<std::array<std::size_t,3>> facets;
-    CGAL::advancing_front_surface_reconstruction(pts.begin(), pts.end(), std::back_inserter(facets));
-
-    // Build a Surface_mesh using the shared vertex list and facet indices
-    m_mesh.clear();
-    std::vector<Mesh::Vertex_index> vindices;
-    vindices.reserve(pts.size());
-    for (const auto& p : pts) vindices.push_back(m_mesh.add_vertex(p));
-    for (const auto& f : facets) {
-        const auto a = f[0], b = f[1], c = f[2];
-        if (a < vindices.size() && b < vindices.size() && c < vindices.size() && a != b && b != c && c != a) {
-            m_mesh.add_face(vindices[a], vindices[b], vindices[c]);
-        }
-    }
-    return !m_mesh.is_empty();
-}
-
 bool CGALPointCloudProcessor::processToMesh(MeshGenerationMethod meshMethod, const BaseInputParameter* params) {
     if (m_pointCloud.empty()) {
         std::cerr << "Error: Point cloud is empty." << std::endl;
         return false;
     }
 
-    // If no parameters provided, use default behavior per method
-    if (!params) {
-        switch (meshMethod) {
-            case MeshGenerationMethod::POISSON_RECONSTRUCTION:
-                return PoissonSurfaceReconstruction();
-            case MeshGenerationMethod::SCALE_SPACE_RECONSTRUCTION:
-                return ScaleSpaceReconstruction();
-            case MeshGenerationMethod::ADVANCING_FRONT_RECONSTRUCTION:
-                return AdvancingFrontReconstruction();
-            default:
-                std::cerr << "Error: Unsupported mesh generation method." << std::endl;
-                return false;
-        }
-    }
-
     switch (meshMethod) {
         case MeshGenerationMethod::POISSON_RECONSTRUCTION: {
-            const auto *poisson = dynamic_cast<const PoissonReconstructionParameter*>(params);
+            const auto *poisson = params ? dynamic_cast<const PoissonReconstructionParameter*>(params) : nullptr;
             return processPoissonWithParams(poisson);
         }
         case MeshGenerationMethod::SCALE_SPACE_RECONSTRUCTION: {
-            const auto *ss = dynamic_cast<const ScaleSpaceReconstructionParameter*>(params);
+            const auto *ss = params ? dynamic_cast<const ScaleSpaceReconstructionParameter*>(params) : nullptr;
             return processScaleSpaceWithParams(ss);
         }
         case MeshGenerationMethod::ADVANCING_FRONT_RECONSTRUCTION: {
-            const auto *af = dynamic_cast<const AdvancingFrontReconstructionParameter*>(params);
+            const auto *af = params ? dynamic_cast<const AdvancingFrontReconstructionParameter*>(params) : nullptr;
             return processAdvancingFrontWithParams(af);
         }
         default:
@@ -362,6 +243,23 @@ bool CGALPointCloudProcessor::processScaleSpaceWithParams(const ScaleSpaceRecons
 }
 
 bool CGALPointCloudProcessor::processAdvancingFrontWithParams(const AdvancingFrontReconstructionParameter* /*af*/) {
-    // No parameters currently, just call default implementation
-    return AdvancingFrontReconstruction();
+    // No parameters currently, so run default advancing-front behavior
+    std::vector<Point> pts;
+    pts.reserve(m_pointCloud.size());
+    for (const auto& pn : m_pointCloud) pts.push_back(pn.first);
+
+    std::vector<std::array<std::size_t,3>> facets;
+    CGAL::advancing_front_surface_reconstruction(pts.begin(), pts.end(), std::back_inserter(facets));
+
+    m_mesh.clear();
+    std::vector<Mesh::Vertex_index> vindices;
+    vindices.reserve(pts.size());
+    for (const auto& p : pts) vindices.push_back(m_mesh.add_vertex(p));
+    for (const auto& f : facets) {
+        const auto a = f[0], b = f[1], c = f[2];
+        if (a < vindices.size() && b < vindices.size() && c < vindices.size() && a != b && b != c && c != a) {
+            m_mesh.add_face(vindices[a], vindices[b], vindices[c]);
+        }
+    }
+    return !m_mesh.is_empty();
 }
