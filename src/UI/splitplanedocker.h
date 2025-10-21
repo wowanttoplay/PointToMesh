@@ -28,6 +28,16 @@ public:
 private:
     void BindUIWithRenderView();
 
+private slots:
+    void onPlaneEdited();
+    void onNormalize();
+    void onAlignToView();
+    void onAlignToAxisX();
+    void onALignToAxixY();
+    void onAlignToAxisZ();
+    void onResetClip();
+    void refreshFromView();
+
 private:
     Ui::SplitPlaneDocker *ui;
     RenderView* m_view {nullptr};

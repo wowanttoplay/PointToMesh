@@ -36,6 +36,43 @@ void RenderView::setMesh(MeshPtr mesh) {
     update();
 }
 
+void RenderView::setClipPlaneFromNormalAndPoint(const QVector3D &normal, const QVector3D &point) {
+    QVector3D n = normal;
+    if (n.lengthSquared() > 0.0f) n.normalize();
+    const float d = -QVector3D::dotProduct(n, point);
+    m_cfg.clipPlaneParams.clipPlane = QVector4D(n, d);
+    update();
+}
+
+static QVector3D cameraForwardFromView(const QMatrix4x4& view) {
+    // forward in world = normalize(invView * (0,0,-1,0))
+    QMatrix4x4 inv = view.inverted();
+    QVector4D fw = inv * QVector4D(0, 0, -1, 0);
+    QVector3D f3(fw.x(), fw.y(), fw.z());
+    if (!f3.isNull()) f3.normalize();
+    return f3;
+}
+
+void RenderView::alignClipPlaneToCameraThroughSceneCenter() {
+    // normal := camera forward; point := scene bbox center
+    const QVector3D fwd = cameraForwardFromView(m_camera.viewMatrix());
+    PointCloudPtr c; MeshPtr m;
+    {
+        QMutexLocker lock(&m_mutex);
+        c = m_cloud; m = m_mesh;
+    }
+    QVector3D minP, maxP; computeBounds(c, m, minP, maxP);
+    const QVector3D center = 0.5f*(minP + maxP);
+    setClipPlaneFromNormalAndPoint(fwd, center);
+}
+
+void RenderView::alignClipPlaneNormalToCamera() {
+    const QVector3D fwd = cameraForwardFromView(m_camera.viewMatrix());
+    QVector4D p = m_cfg.clipPlaneParams.clipPlane;
+    m_cfg.clipPlaneParams.clipPlane = QVector4D(fwd, p.w()); // keep d unchanged
+    update();
+}
+
 void RenderView::initializeGL() {
     // Renderer will configure global GL state; just log actual context
     if (auto* ctx = QOpenGLContext::currentContext()) {
