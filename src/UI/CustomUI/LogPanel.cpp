@@ -7,6 +7,11 @@ LogPanel::LogPanel(const QString &title, QWidget* parent)
     m_text = new QPlainTextEdit;
     m_text->setReadOnly(true);
     setWidget(m_text);
+    // Ensure QDockWidget has an objectName so QMainWindow::saveState can save/restore it.
+    // Use a sanitized version of the title (replace spaces) to make a valid objectName.
+    QString obj = title;
+    obj.replace(' ', '_');
+    setObjectName(obj);
 }
 
 LogPanel::~LogPanel() = default;
