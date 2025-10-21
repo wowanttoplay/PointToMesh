@@ -29,14 +29,12 @@ private:
     void BindUIWithRenderView();
 
 private slots:
-    void onPlaneEdited();
-    void onNormalize();
-    void onAlignToView();
+    // When rotation or location values change, recompute plane (normal,d) and send to RenderView
+    void onTransformEdited();
     void onAlignToAxisX();
     void onALignToAxixY();
     void onAlignToAxisZ();
     void onResetClip();
-    void refreshFromView();
 
 private:
     Ui::SplitPlaneDocker *ui;

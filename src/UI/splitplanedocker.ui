@@ -23,9 +23,9 @@
      </widget>
     </item>
     <item row="4" column="3">
-     <widget class="QDoubleSpinBox" name="plane_nz">
+     <widget class="QDoubleSpinBox" name="rotation_z">
       <property name="toolTip">
-       <string>nz</string>
+       <string>rotation Z (degrees)</string>
       </property>
       <property name="specialValueText">
        <string/>
@@ -33,9 +33,9 @@
      </widget>
     </item>
     <item row="5" column="1">
-     <widget class="QDoubleSpinBox" name="plane_d">
+     <widget class="QDoubleSpinBox" name="loc_x">
       <property name="toolTip">
-       <string>d</string>
+       <string>location X</string>
       </property>
       <property name="specialValueText">
        <string/>
@@ -49,17 +49,11 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="2">
-     <widget class="QPushButton" name="btnView">
-      <property name="text">
-       <string>Refresh From View</string>
-      </property>
-     </widget>
-    </item>
+    <!-- removed unused btnView -->
     <item row="4" column="1">
-     <widget class="QDoubleSpinBox" name="plane_nx">
+     <widget class="QDoubleSpinBox" name="rotation_x">
       <property name="toolTip">
-       <string>nx</string>
+       <string>rotation X (degrees)</string>
       </property>
       <property name="specialValueText">
        <string/>
@@ -73,13 +67,7 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="1">
-     <widget class="QPushButton" name="btnNormaliza">
-      <property name="text">
-       <string>Normalize </string>
-      </property>
-     </widget>
-    </item>
+    <!-- removed unused btnNormaliza -->
     <item row="1" column="1">
      <widget class="QPushButton" name="btnX">
       <property name="text">
@@ -95,9 +83,9 @@
      </widget>
     </item>
     <item row="4" column="2">
-     <widget class="QDoubleSpinBox" name="plane_ny">
+     <widget class="QDoubleSpinBox" name="rotation_y">
       <property name="toolTip">
-       <string>ny</string>
+       <string>rotation Y (degrees)</string>
       </property>
       <property name="specialValueText">
        <string/>
@@ -108,6 +96,26 @@
      <widget class="QPushButton" name="btnZ">
       <property name="text">
        <string>Aligh To AxisZ</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="2">
+     <widget class="QDoubleSpinBox" name="loc_y">
+      <property name="toolTip">
+       <string>location Y</string>
+      </property>
+      <property name="specialValueText">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="3">
+     <widget class="QDoubleSpinBox" name="loc_z">
+      <property name="toolTip">
+       <string>location Z</string>
+      </property>
+      <property name="specialValueText">
+       <string/>
       </property>
      </widget>
     </item>
