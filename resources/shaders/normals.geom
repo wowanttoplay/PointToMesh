@@ -5,6 +5,7 @@ layout(line_strip, max_vertices = 2) out;
 uniform mat4 u_mvp;
 uniform float u_normalLen; // length in world units
 uniform vec4 u_clipPlane;  // clipping plane
+uniform float u_clipPlaneEnabled; // clip plane enabeld
 
 in vec3 v_pos[];
 in vec3 v_normal[];
@@ -21,7 +22,7 @@ void main() {
 
     // Base point clip value; if it's outside, skip emitting this normal entirely.
     float baseClip = dot(u_clipPlane, vec4(p0, 1.0));
-    if (baseClip < 0.0) {
+    if (baseClip < 0.0 && u_clipPlaneEnabled > 0.9) {
         return;
     }
 

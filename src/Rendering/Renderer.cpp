@@ -36,6 +36,8 @@ bool Renderer::initialize(ShaderLibrary& shaders, QString* error) {
     m_locColorN = m_progNormals->uniformLocation("u_color");
     m_locNormalLen = m_progNormals->uniformLocation("u_normalLen");
     m_locClipPlaneN = m_progNormals->uniformLocation("u_clipPlane");
+    m_locClipPlaneEnabled = m_progNormals->uniformLocation("u_clipPlaneEnabled");
+
 
     // Create buffers/VAOs
     if (!m_vaoPoints.isCreated()) m_vaoPoints.create();
@@ -198,8 +200,9 @@ void Renderer::draw(const Camera& cam, const RenderSettings& cfg, const QSize& v
     if (cfg.showNormals && m_hasPointNormal && m_progNormals && m_pointCount > 0) {
         m_progNormals->bind();
         m_progNormals->setUniformValue(m_locMvpN, mvp);
-        if (m_locClipPlaneN >= 0) {
+        if (m_locClipPlaneN >= 0 && m_locClipPlaneEnabled >= 0) {
             m_progNormals->setUniformValue(m_locClipPlaneN, cfg.clipPlaneParams.clipPlane);
+            m_progNormals->setUniformValue(m_locClipPlaneEnabled, cfg.clipPlaneParams.clipEnabled ? 1.0f : 0.0f);
         }
         // A default bluish color for normals
         m_progNormals->setUniformValue(m_locColorN, QVector3D(0.2f, 0.6f, 1.0f));

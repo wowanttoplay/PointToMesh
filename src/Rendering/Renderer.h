@@ -35,6 +35,7 @@ private:
     int m_locColorN {-1};
     int m_locNormalLen {-1};
     int m_locClipPlaneN {-1};
+    int m_locClipPlaneEnabled{-1};
 
     // Points
     QOpenGLVertexArrayObject m_vaoPoints;
