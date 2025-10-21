@@ -70,6 +70,7 @@ add_executable(PointToMesh
         src/UI/splitplanedocker.cpp
         src/UI/splitplanedocker.h
         src/UI/splitplanedocker.ui
+        src/DataProcess/BaseInputParameter.h
 )
 
 # Add include directories
