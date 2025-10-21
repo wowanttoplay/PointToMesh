@@ -41,6 +41,8 @@ add_executable(PointToMesh
     src/UI/mainwindow.cpp
     src/UI/mainwindow.h
     src/UI/mainwindow.ui
+    src/UI/ParameterDialog.cpp
+    src/UI/ParameterDialog.h
         src/UI/CustomUI/LogPanel.cpp
         src/UI/CustomUI/LogPanel.h
     src/UI/ViewSettingsDialog.cpp

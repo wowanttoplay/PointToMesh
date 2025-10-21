@@ -12,6 +12,7 @@
 #include <QDialogButtonBox>
 #include <QMetaProperty>
 #include <QLabel>
+#include <QPushButton>
 
 #include <limits>
 
@@ -62,8 +63,12 @@ ParameterDialog::ParameterDialog(BaseInputParameter *params, QWidget *parent)
     }
 
     QDialogButtonBox *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    // Add Apply button that applies without closing
+    QPushButton *applyButton = new QPushButton(tr("Apply"), this);
+    buttons->addButton(applyButton, QDialogButtonBox::ActionRole);
     connect(buttons, &QDialogButtonBox::accepted, this, &ParameterDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &ParameterDialog::reject);
+    connect(applyButton, &QPushButton::clicked, this, &ParameterDialog::onApplyClicked);
 
     form->addRow(buttons);
     setLayout(form);
@@ -98,4 +103,31 @@ void ParameterDialog::accept() {
     }
 
     QDialog::accept();
+}
+
+void ParameterDialog::onApplyClicked() {
+    if (!m_params) return;
+
+    // Same apply logic as accept but do not close the dialog
+    for (auto it = m_editors.constBegin(); it != m_editors.constEnd(); ++it) {
+        QString name = it.key();
+        QWidget *w = it.value();
+        QVariant newVal;
+
+        if (auto sb = qobject_cast<QSpinBox *>(w)) {
+            newVal = sb->value();
+        } else if (auto db = qobject_cast<QDoubleSpinBox *>(w)) {
+            newVal = db->value();
+        } else if (auto cb = qobject_cast<QCheckBox *>(w)) {
+            newVal = cb->isChecked();
+        } else if (auto le = qobject_cast<QLineEdit *>(w)) {
+            newVal = le->text();
+        }
+
+        if (!newVal.isNull()) {
+            m_params->setProperty(name.toLatin1().constData(), newVal);
+        }
+    }
+
+    emit applyClicked(m_params);
 }

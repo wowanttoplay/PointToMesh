@@ -20,8 +20,13 @@ public:
         return dlg.exec() == QDialog::Accepted;
     }
 
+signals:
+    // Emitted when the user clicks Apply (does not close the dialog)
+    void applyClicked(BaseInputParameter* params);
+
 private slots:
     void accept() override;
+    void onApplyClicked();
 
 private:
     BaseInputParameter *m_params = nullptr;
@@ -29,4 +34,3 @@ private:
 };
 
 #endif //POINTTOMESH_PARAMETERDIALOG_H
-
