@@ -23,6 +23,7 @@ bool Renderer::initialize(ShaderLibrary& shaders, QString* error) {
     m_locMvp = m_prog->uniformLocation("u_mvp");
     m_locColor = m_prog->uniformLocation("u_color");
     m_locPointSize = m_prog->uniformLocation("u_pointSize");
+    m_locClipPlane = m_prog->uniformLocation("u_clipPlane");
 
     // Normals visualization program (geometry shader based)
     QString nerr;
@@ -34,6 +35,9 @@ bool Renderer::initialize(ShaderLibrary& shaders, QString* error) {
     m_locMvpN = m_progNormals->uniformLocation("u_mvp");
     m_locColorN = m_progNormals->uniformLocation("u_color");
     m_locNormalLen = m_progNormals->uniformLocation("u_normalLen");
+    m_locClipPlaneN = m_progNormals->uniformLocation("u_clipPlane");
+    m_locClipPlaneEnabled = m_progNormals->uniformLocation("u_clipPlaneEnabled");
+
 
     // Create buffers/VAOs
     if (!m_vaoPoints.isCreated()) m_vaoPoints.create();
@@ -134,12 +138,20 @@ void Renderer::draw(const Camera& cam, const RenderSettings& cfg, const QSize& v
     glViewport(0, 0, viewport.width(), viewport.height());
     glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (cfg.clipPlaneParams.clipEnabled) {
+        glEnable(GL_CLIP_DISTANCE0);
+    } else {
+        glDisable(GL_CLIP_DISTANCE0);
+    }
 
     const float aspect = viewport.width() > 0 ? float(viewport.width())/float(std::max(1, viewport.height())) : 1.0f;
     const QMatrix4x4 mvp = cam.projMatrix(aspect) * cam.viewMatrix();
 
     m_prog->bind();
     m_prog->setUniformValue(m_locMvp, mvp);
+    if (m_locClipPlane >= 0) {
+        m_prog->setUniformValue(m_locClipPlane, cfg.clipPlaneParams.clipPlane);
+    }
 
     // Mesh fill pass
     if (cfg.showMesh && m_indexCount > 0) {
@@ -188,6 +200,10 @@ void Renderer::draw(const Camera& cam, const RenderSettings& cfg, const QSize& v
     if (cfg.showNormals && m_hasPointNormal && m_progNormals && m_pointCount > 0) {
         m_progNormals->bind();
         m_progNormals->setUniformValue(m_locMvpN, mvp);
+        if (m_locClipPlaneN >= 0 && m_locClipPlaneEnabled >= 0) {
+            m_progNormals->setUniformValue(m_locClipPlaneN, cfg.clipPlaneParams.clipPlane);
+            m_progNormals->setUniformValue(m_locClipPlaneEnabled, cfg.clipPlaneParams.clipEnabled ? 1.0f : 0.0f);
+        }
         // A default bluish color for normals
         m_progNormals->setUniformValue(m_locColorN, QVector3D(0.2f, 0.6f, 1.0f));
         // Fixed length in world units; could be made configurable

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SplitPlaneDocker</class>
+ <widget class="QDockWidget" name="SplitPlaneDocker">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>520</width>
+    <height>340</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>SplitPlaneDocker</string>
+  </property>
+  <widget class="QWidget" name="dockWidgetContents">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="3" column="1" colspan="3">
+     <widget class="Line" name="SplitLine">
+      <property name="orientation">
+       <enum>Qt::Orientation::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="3">
+     <widget class="QDoubleSpinBox" name="rotation_z">
+      <property name="toolTip">
+       <string>rotation Z (degrees)</string>
+      </property>
+      <property name="specialValueText">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1">
+     <widget class="QDoubleSpinBox" name="loc_x">
+      <property name="toolTip">
+       <string>location X</string>
+      </property>
+      <property name="specialValueText">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="3">
+     <widget class="QPushButton" name="btnRest">
+      <property name="text">
+       <string>Reset Plane</string>
+      </property>
+     </widget>
+    </item>
+    <!-- removed unused btnView -->
+    <item row="4" column="1">
+     <widget class="QDoubleSpinBox" name="rotation_x">
+      <property name="toolTip">
+       <string>rotation X (degrees)</string>
+      </property>
+      <property name="specialValueText">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QCheckBox" name="SplitPlaneEnable">
+      <property name="text">
+       <string>Enable Split plane</string>
+      </property>
+     </widget>
+    </item>
+    <!-- removed unused btnNormaliza -->
+    <item row="1" column="1">
+     <widget class="QPushButton" name="btnX">
+      <property name="text">
+       <string>Align To AxisX</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="QPushButton" name="btnY">
+      <property name="text">
+       <string>Alighn To AxisY</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="2">
+     <widget class="QDoubleSpinBox" name="rotation_y">
+      <property name="toolTip">
+       <string>rotation Y (degrees)</string>
+      </property>
+      <property name="specialValueText">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="3">
+     <widget class="QPushButton" name="btnZ">
+      <property name="text">
+       <string>Aligh To AxisZ</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="2">
+     <widget class="QDoubleSpinBox" name="loc_y">
+      <property name="toolTip">
+       <string>location Y</string>
+      </property>
+      <property name="specialValueText">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="3">
+     <widget class="QDoubleSpinBox" name="loc_z">
+      <property name="toolTip">
+       <string>location Z</string>
+      </property>
+      <property name="specialValueText">
+       <string/>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -31,6 +31,15 @@ public slots:
     void setWireColor(const QVector3D& c) { m_cfg.wireColor = c; update(); }
     void setCameraSpeed(float v) { m_cfg.cameraSpeed = std::clamp(v, 0.01f, 1000.0f); }
 
+    // Clip plane controls
+    void setClipEnabled(bool on) {m_cfg.clipPlaneParams.clipEnabled = on; update(); }
+    void setClipPlane(const QVector4D& plane) {m_cfg.clipPlaneParams.clipPlane = plane; update(); }
+    QVector4D clipPlane() const { return m_cfg.clipPlaneParams.clipPlane; }
+    bool clipEnabled() const { return m_cfg.clipPlaneParams.clipEnabled; }
+    void setClipPlaneFromNormalAndPoint (const QVector3D& normal, const QVector3D& point);
+    void alignClipPlaneToCameraThroughSceneCenter();
+    void alignClipPlaneNormalToCamera();
+
 public:
     float pointSize() const { return static_cast<float>(m_cfg.pointSize); }
     void adjustPointSize(float delta) { setPointSize(pointSize() + delta); }

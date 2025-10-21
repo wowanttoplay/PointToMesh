@@ -34,15 +34,15 @@ set(CMAKE_AUTOUIC ON)
 # Sources
 add_executable(PointToMesh
     main.cpp
-    src/UI/ScalarControlWidget.cpp
-    src/UI/ScalarControlWidget.h
-    src/UI/ColorSwatch.cpp
-    src/UI/ColorSwatch.h
+        src/UI/CustomUI/ScalarControlWidget.cpp
+        src/UI/CustomUI/ScalarControlWidget.h
+        src/UI/CustomUI/ColorSwatch.cpp
+        src/UI/CustomUI/ColorSwatch.h
     src/UI/mainwindow.cpp
     src/UI/mainwindow.h
     src/UI/mainwindow.ui
-    src/UI/LogPanel.cpp
-    src/UI/LogPanel.h
+        src/UI/CustomUI/LogPanel.cpp
+        src/UI/CustomUI/LogPanel.h
     src/UI/ViewSettingsDialog.cpp
     src/UI/ViewSettingsDialog.h
     src/UI/ViewSettingsDialog.ui
@@ -60,14 +60,16 @@ add_executable(PointToMesh
     src/Presentation/PointCloudController.h
         src/Settings/SettingsManager.cpp
         src/Settings/SettingsManager.h
-        src/Settings/ViewSettingsBinder.cpp
-        src/Settings/ViewSettingsBinder.h
         src/Settings/WindowStateGuard.cpp
         src/Settings/WindowStateGuard.h
     src/Model/Geometry.h
     src/DataProcess/CGALPointCloudProcessor.cpp
     src/DataProcess/CGALPointCloudProcessor.h
     src/DataProcess/PointCloudProcessor.h
+    resources/resources.qrc
+        src/UI/splitplanedocker.cpp
+        src/UI/splitplanedocker.h
+        src/UI/splitplanedocker.ui
 )
 
 # Add include directories
@@ -89,15 +91,9 @@ target_link_libraries(PointToMesh PRIVATE
     Eigen3::Eigen
 )
 
+# Keep a hook for Windows packaging via windeployqt; no longer copy resources post-build
 set(POST_BUILD_COMMANDS "")
 set(POST_BUILD_COMMENTS "")
-
-list(APPEND POST_BUILD_COMMANDS
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/resources
-        $<TARGET_FILE_DIR:PointToMesh>/resources
-)
-list(APPEND POST_BUILD_COMMENTS "Copying project resources...")
 
 if (WIN32)
     # Locate windeployqt within vcpkg install paths on Windows

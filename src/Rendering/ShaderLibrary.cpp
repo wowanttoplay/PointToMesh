@@ -48,13 +48,7 @@ bool ShaderLibrary::ensureProgram(const QString& name, QString* error) {
     // Build default search paths if none specified
     QStringList paths = m_searchPaths;
     if (paths.isEmpty()) {
-        // 1) app dir/resources/shaders (deploy layout)
-        paths << (QCoreApplication::applicationDirPath() + "/resources/shaders");
-        // 2) current working dir/resources/shaders (dev layout)
-        paths << (QDir::currentPath() + "/resources/shaders");
-        // 3) just resources/shaders relative (for some IDE run configs)
-        paths << QStringLiteral("resources/shaders");
-        // 4) Optional Qt resource prefix if in a qrc
+        // Prefer embedded Qt resource first to avoid stale on-disk files
         paths << QStringLiteral(":/resources/shaders");
     }
 
