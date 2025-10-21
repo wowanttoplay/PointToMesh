@@ -20,7 +20,6 @@ public:
 
 public slots:
     void importFromFile(const QString& path);
-    void runReconstructionWith(MeshGenerationMethod method);
     void exportMesh(const QString& path, bool withNormals);
 
 signals:
@@ -30,8 +29,6 @@ signals:
 
     // Internal to worker thread
     void workerImport(const QString& path);
-    void workerReconstruct();
-    void workerReconstructWith(MeshGenerationMethod method);
     void workerReconstructWithParams(MeshGenerationMethod method, BaseInputParameter* params); // takes ownership
     void workerExport(const QString& path, bool withNormals);
 

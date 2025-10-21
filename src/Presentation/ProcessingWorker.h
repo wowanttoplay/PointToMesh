@@ -14,7 +14,6 @@ public:
 
 public slots:
     void importPointCloud(const QString& filePath);
-    void reconstructWith(MeshGenerationMethod method);
     // Parameterized reconstruction; takes ownership of params and deletes it in worker thread
     void reconstructWithParams(MeshGenerationMethod method, BaseInputParameter* params);
     void exportMeshTo(const QString& filePath, bool withNormals);

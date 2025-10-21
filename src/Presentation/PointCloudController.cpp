@@ -19,7 +19,6 @@ PointCloudController::PointCloudController(std::unique_ptr<PointCloudProcessor> 
 
     // Upstream wiring: controller -> worker (queued)
     connect(this, &PointCloudController::workerImport,      m_worker, &ProcessingWorker::importPointCloud, Qt::QueuedConnection);
-    connect(this, &PointCloudController::workerReconstructWith, m_worker, &ProcessingWorker::reconstructWith, Qt::QueuedConnection);
     connect(this, &PointCloudController::workerReconstructWithParams, m_worker, &ProcessingWorker::reconstructWithParams, Qt::QueuedConnection);
     connect(this, &PointCloudController::workerExport,      m_worker, &ProcessingWorker::exportMeshTo,      Qt::QueuedConnection);
 
@@ -38,10 +37,6 @@ PointCloudController::~PointCloudController() {
 
 void PointCloudController::importFromFile(const QString& path) {
     emit workerImport(path);
-}
-
-void PointCloudController::runReconstructionWith(MeshGenerationMethod method) {
-    emit workerReconstructWith(method);
 }
 
 void PointCloudController::runReconstructionWith(MeshGenerationMethod method, std::unique_ptr<BaseInputParameter> params) {
