@@ -12,8 +12,14 @@
 SplitPlaneDocker::SplitPlaneDocker(QWidget *parent, RenderView *view) : QDockWidget(parent),
                                                                         ui(new Ui::SplitPlaneDocker), m_view(view) {
     ui->setupUi(this);
+
+    BindUIWithRenderView();
 }
 
 SplitPlaneDocker::~SplitPlaneDocker() {
     delete ui;
+}
+
+void SplitPlaneDocker::BindUIWithRenderView() {
+
 }

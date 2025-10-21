@@ -26,6 +26,9 @@ public:
     ~SplitPlaneDocker() override;
 
 private:
+    void BindUIWithRenderView();
+
+private:
     Ui::SplitPlaneDocker *ui;
     RenderView* m_view {nullptr};
 };

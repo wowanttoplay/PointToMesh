@@ -6,14 +6,113 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>520</width>
+    <height>340</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>SplitPlaneDocker</string>
   </property>
-  <widget class="QWidget" name="dockWidgetContents"/>
+  <widget class="QWidget" name="dockWidgetContents">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="3" column="1" colspan="3">
+     <widget class="Line" name="SplitLine">
+      <property name="orientation">
+       <enum>Qt::Orientation::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="3">
+     <widget class="QDoubleSpinBox" name="plane_nz">
+      <property name="toolTip">
+       <string>nz</string>
+      </property>
+      <property name="specialValueText">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1">
+     <widget class="QDoubleSpinBox" name="plane_d">
+      <property name="toolTip">
+       <string>d</string>
+      </property>
+      <property name="specialValueText">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="3">
+     <widget class="QPushButton" name="btnRest">
+      <property name="text">
+       <string>Reset Plane</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="2">
+     <widget class="QPushButton" name="btnView">
+      <property name="text">
+       <string>Refresh From View</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QDoubleSpinBox" name="plane_nx">
+      <property name="toolTip">
+       <string>nx</string>
+      </property>
+      <property name="specialValueText">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QCheckBox" name="SplitPlaneEnable">
+      <property name="text">
+       <string>Enable Split plane</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QPushButton" name="btnNormaliza">
+      <property name="text">
+       <string>Normalize </string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QPushButton" name="btnX">
+      <property name="text">
+       <string>Align To AxisX</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="QPushButton" name="btnY">
+      <property name="text">
+       <string>Alighn To AxisY</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="2">
+     <widget class="QDoubleSpinBox" name="plane_ny">
+      <property name="toolTip">
+       <string>ny</string>
+      </property>
+      <property name="specialValueText">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="3">
+     <widget class="QPushButton" name="btnZ">
+      <property name="text">
+       <string>Aligh To AxisZ</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
  </widget>
  <resources/>
  <connections/>
