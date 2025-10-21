@@ -204,6 +204,8 @@ bool CGALPointCloudProcessor::processPoissonWithParams(const PoissonReconstructi
         CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>())
     );
     const double spacing = base_spacing * spacing_scale;
+    sm_radius = spacing * sm_radius;
+    sm_distance = spacing * sm_distance;
     const bool ok = CGAL::poisson_surface_reconstruction_delaunay(
         m_pointCloud.begin(), m_pointCloud.end(),
         CGAL::First_of_pair_property_map<PointWithNormal>(),
