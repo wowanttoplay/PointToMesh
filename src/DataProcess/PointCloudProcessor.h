@@ -72,22 +72,12 @@ public:
     virtual bool estimateNormals(NormalEstimationMethod normalMethod = NormalEstimationMethod::JET_ESTIMATION) = 0;
 
     /**
-     * @brief Processes the loaded point cloud into a mesh. Requires normals to be present.
-     * @param meshMethod The algorithm to use for mesh generation.
-     * @return True if processing was successful, false otherwise.
-     */
-    virtual bool processToMesh(MeshGenerationMethod meshMethod = MeshGenerationMethod::POISSON_RECONSTRUCTION) = 0;
-
-    /**
      * @brief Processes the loaded point cloud into a mesh with the given parameters.
      *        Implementations may dynamically cast to the expected parameter type per method.
      * @param meshMethod The algorithm to use for mesh generation.
      * @param params Optional parameters object (may be null). Ownership is not taken here.
      */
-    virtual bool processToMesh(MeshGenerationMethod meshMethod, const BaseInputParameter* params) {
-        Q_UNUSED(params);
-        return processToMesh(meshMethod);
-    }
+    virtual bool processToMesh(MeshGenerationMethod meshMethod, const BaseInputParameter* params) = 0;
 
     /**
      * @brief Exports the generated mesh to a file.

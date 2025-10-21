@@ -63,7 +63,8 @@ void ProcessingWorker::reconstructWith(MeshGenerationMethod method) {
     }
 
     emit logMessage(QStringLiteral("Running ") + methodName + QStringLiteral("..."));
-    if (!m_proc->processToMesh(method)) {
+    // Use the params-based API with nullptr to keep default behavior
+    if (!m_proc->processToMesh(method, nullptr)) {
         emit logMessage(methodName + QStringLiteral(" failed."));
         return;
     }

@@ -180,100 +180,39 @@ bool CGALPointCloudProcessor::AdvancingFrontReconstruction() {
     return !m_mesh.is_empty();
 }
 
-bool CGALPointCloudProcessor::processToMesh(MeshGenerationMethod meshMethod) {
-    if (m_pointCloud.empty()) {
-        std::cerr << "Error: Point cloud is empty." << std::endl;
-        return false;
-    }
-
-    switch (meshMethod) {
-        case MeshGenerationMethod::POISSON_RECONSTRUCTION: {
-            return PoissonSurfaceReconstruction();
-        }
-        case MeshGenerationMethod::SCALE_SPACE_RECONSTRUCTION: {
-            return ScaleSpaceReconstruction();
-        }
-        case MeshGenerationMethod::ADVANCING_FRONT_RECONSTRUCTION: {
-            return AdvancingFrontReconstruction();
-        }
-        default:
-            std::cerr << "Error: Unsupported mesh generation method." << std::endl;
-            return false;
-    }
-}
-
 bool CGALPointCloudProcessor::processToMesh(MeshGenerationMethod meshMethod, const BaseInputParameter* params) {
-    if (!params) return processToMesh(meshMethod);
     if (m_pointCloud.empty()) {
         std::cerr << "Error: Point cloud is empty." << std::endl;
         return false;
     }
 
+    // If no parameters provided, use default behavior per method
+    if (!params) {
+        switch (meshMethod) {
+            case MeshGenerationMethod::POISSON_RECONSTRUCTION:
+                return PoissonSurfaceReconstruction();
+            case MeshGenerationMethod::SCALE_SPACE_RECONSTRUCTION:
+                return ScaleSpaceReconstruction();
+            case MeshGenerationMethod::ADVANCING_FRONT_RECONSTRUCTION:
+                return AdvancingFrontReconstruction();
+            default:
+                std::cerr << "Error: Unsupported mesh generation method." << std::endl;
+                return false;
+        }
+    }
+
     switch (meshMethod) {
         case MeshGenerationMethod::POISSON_RECONSTRUCTION: {
-            // Expect PoissonReconstructionParameter; fall back to defaults if cast fails
             const auto *poisson = dynamic_cast<const PoissonReconstructionParameter*>(params);
-            if (!hasNormals()) {
-                std::cerr << "Error: Normals are required for Poisson mesh generation but were not found or estimated." << std::endl;
-                return false;
-            }
-            m_mesh.clear();
-            double sm_angle = 20.0;
-            double sm_radius = 30.0;
-            double sm_distance = 0.375;
-            int neighbors = 6;
-            double spacing_scale = 1.0;
-            if (poisson) {
-                sm_angle = poisson->angle;
-                sm_radius = poisson->radius;
-                sm_distance = poisson->distance;
-                neighbors = poisson->neighbors_number;
-                spacing_scale = poisson->spacing_scale;
-            }
-            const double base_spacing = CGAL::compute_average_spacing<CGAL::Sequential_tag>(
-                m_pointCloud, neighbors,
-                CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>())
-            );
-            const double spacing = base_spacing * spacing_scale;
-            const bool ok = CGAL::poisson_surface_reconstruction_delaunay(
-                m_pointCloud.begin(), m_pointCloud.end(),
-                CGAL::First_of_pair_property_map<PointWithNormal>(),
-                CGAL::Second_of_pair_property_map<PointWithNormal>(),
-                m_mesh,
-                spacing, sm_angle, sm_radius, sm_distance);
-            if (!ok) {
-                std::cerr << "Error: Poisson surface reconstruction failed." << std::endl;
-                return false;
-            }
-            return true;
+            return processPoissonWithParams(poisson);
         }
         case MeshGenerationMethod::SCALE_SPACE_RECONSTRUCTION: {
             const auto *ss = dynamic_cast<const ScaleSpaceReconstructionParameter*>(params);
-            std::vector<Point> pts;
-            pts.reserve(m_pointCloud.size());
-            for (const auto& pn : m_pointCloud) pts.push_back(pn.first);
-            using SSSR = CGAL::Scale_space_surface_reconstruction_3<K>;
-            SSSR recon(pts.begin(), pts.end());
-            int iters = 4;
-            if (ss) iters = ss->iterations_number;
-            if (iters < 0) iters = 0;
-            for (int i = 0; i < iters; ++i) recon.increase_scale(1);
-            recon.reconstruct_surface();
-
-            m_mesh.clear();
-            std::vector<Mesh::Vertex_index> vdesc;
-            vdesc.reserve(recon.number_of_points());
-            for (const auto& p : recon.points()) vdesc.push_back(m_mesh.add_vertex(p));
-            for (const auto& f : recon.facets()) {
-                Mesh::Vertex_index v0 = vdesc[f[0]];
-                Mesh::Vertex_index v1 = vdesc[f[1]];
-                Mesh::Vertex_index v2 = vdesc[f[2]];
-                if (v0 != v1 && v1 != v2 && v2 != v0) m_mesh.add_face(v0, v1, v2);
-            }
-            return !m_mesh.is_empty();
+            return processScaleSpaceWithParams(ss);
         }
         case MeshGenerationMethod::ADVANCING_FRONT_RECONSTRUCTION: {
-            return AdvancingFrontReconstruction();
+            const auto *af = dynamic_cast<const AdvancingFrontReconstructionParameter*>(params);
+            return processAdvancingFrontWithParams(af);
         }
         default:
             std::cerr << "Error: Unsupported mesh generation method." << std::endl;
@@ -358,4 +297,71 @@ bool CGALPointCloudProcessor::hasNormals() const {
     }
     // If the first point has a non-zero normal vector, we assume the file contained normals.
     return m_pointCloud[0].second != CGAL::NULL_VECTOR;
+}
+
+// Helper implementations
+bool CGALPointCloudProcessor::processPoissonWithParams(const PoissonReconstructionParameter* poisson) {
+    if (!hasNormals()) {
+        std::cerr << "Error: Normals are required for Poisson mesh generation but were not found or estimated." << std::endl;
+        return false;
+    }
+    m_mesh.clear();
+    double sm_angle = 20.0;
+    double sm_radius = 30.0;
+    double sm_distance = 0.375;
+    int neighbors = 6;
+    double spacing_scale = 1.0;
+    if (poisson) {
+        sm_angle = poisson->angle;
+        sm_radius = poisson->radius;
+        sm_distance = poisson->distance;
+        neighbors = poisson->neighbors_number;
+        spacing_scale = poisson->spacing_scale;
+    }
+    const double base_spacing = CGAL::compute_average_spacing<CGAL::Sequential_tag>(
+        m_pointCloud, neighbors,
+        CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>())
+    );
+    const double spacing = base_spacing * spacing_scale;
+    const bool ok = CGAL::poisson_surface_reconstruction_delaunay(
+        m_pointCloud.begin(), m_pointCloud.end(),
+        CGAL::First_of_pair_property_map<PointWithNormal>(),
+        CGAL::Second_of_pair_property_map<PointWithNormal>(),
+        m_mesh,
+        spacing, sm_angle, sm_radius, sm_distance);
+    if (!ok) {
+        std::cerr << "Error: Poisson surface reconstruction failed." << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool CGALPointCloudProcessor::processScaleSpaceWithParams(const ScaleSpaceReconstructionParameter* ss) {
+    std::vector<Point> pts;
+    pts.reserve(m_pointCloud.size());
+    for (const auto& pn : m_pointCloud) pts.push_back(pn.first);
+    using SSSR = CGAL::Scale_space_surface_reconstruction_3<K>;
+    SSSR recon(pts.begin(), pts.end());
+    int iters = 4;
+    if (ss) iters = ss->iterations_number;
+    if (iters < 0) iters = 0;
+    recon.increase_scale(iters);
+    recon.reconstruct_surface();
+
+    m_mesh.clear();
+    std::vector<Mesh::Vertex_index> vdesc;
+    vdesc.reserve(recon.number_of_points());
+    for (const auto& p : recon.points()) vdesc.push_back(m_mesh.add_vertex(p));
+    for (const auto& f : recon.facets()) {
+        Mesh::Vertex_index v0 = vdesc[f[0]];
+        Mesh::Vertex_index v1 = vdesc[f[1]];
+        Mesh::Vertex_index v2 = vdesc[f[2]];
+        if (v0 != v1 && v1 != v2 && v2 != v0) m_mesh.add_face(v0, v1, v2);
+    }
+    return !m_mesh.is_empty();
+}
+
+bool CGALPointCloudProcessor::processAdvancingFrontWithParams(const AdvancingFrontReconstructionParameter* /*af*/) {
+    // No parameters currently, just call default implementation
+    return AdvancingFrontReconstruction();
 }
