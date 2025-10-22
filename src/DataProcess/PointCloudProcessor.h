@@ -28,7 +28,9 @@ using Mesh = CGAL::Surface_mesh<Point>;
  * @brief Defines the available algorithms for normal estimation.
  */
 enum class NormalEstimationMethod {
-    JET_ESTIMATION, // Default method using jet fitting
+    JET_ESTIMATION, // Default method using jet fitting for near-surface point sets
+    UNIFORM_VOLUME_CENTROID, // New: for uniformly distributed points inside a region (centroid gradient)
+    VCM_ESTIMATION, // New: Voronoi Covariance Measure-based normal estimation
     // Future methods like MLS can be added here
 };
 

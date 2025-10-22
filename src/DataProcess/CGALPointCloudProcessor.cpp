@@ -13,11 +13,16 @@ namespace PMP = CGAL::Polygon_mesh_processing;
 // Normal Estimation
 #include <CGAL/jet_estimate_normals.h>
 #include <CGAL/mst_orient_normals.h>
+#include <CGAL/vcm_estimate_normals.h>
 
 #include <CGAL/Scale_space_surface_reconstruction_3.h>
 #include <CGAL/Advancing_front_surface_reconstruction.h>
 #include <CGAL/compute_average_spacing.h>
 #include <array>
+
+// Neighbor search for centroid-based normals
+#include <CGAL/Search_traits_3.h>
+#include <CGAL/Orthogonal_k_neighbor_search.h>
 
 #include "BaseInputParameter.h"
 
@@ -67,6 +72,85 @@ bool CGALPointCloudProcessor::estimateNormals(NormalEstimationMethod normalMetho
                                      CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>())
                                          .normal_map(CGAL::Second_of_pair_property_map<PointWithNormal>()));
 
+            return true;
+        }
+        case NormalEstimationMethod::UNIFORM_VOLUME_CENTROID: {
+            // For uniformly distributed points inside a region, approximate boundary normals
+            // by the direction from local neighbor centroid to the query point (outward bias).
+            using Traits = CGAL::Search_traits_3<K>;
+            using KnnSearch = CGAL::Orthogonal_k_neighbor_search<Traits>;
+            using Tree = KnnSearch::Tree;
+
+            // Build a list of pure points and a k-d tree on them
+            std::vector<Point> pts;
+            pts.reserve(m_pointCloud.size());
+            for (const auto& pn : m_pointCloud) pts.push_back(pn.first);
+            Tree tree(pts.begin(), pts.end());
+
+            const int k_neighbors = 24;
+            auto nmap = CGAL::Second_of_pair_property_map<PointWithNormal>();
+
+            for (std::size_t i = 0; i < pts.size(); ++i) {
+                const Point& query = pts[i];
+                // Request k+1 neighbors to include the query itself (distance 0)
+                int k = std::min<int>(k_neighbors + 1, static_cast<int>(pts.size()));
+                KnnSearch search(tree, query, k);
+
+                // Accumulate neighbor positions excluding the query itself
+                K::FT cx = 0, cy = 0, cz = 0;
+                int count = 0;
+                for (const auto& res : search) {
+                    if (res.second == 0) continue; // skip self
+                    const Point& p = res.first;
+                    cx += p.x(); cy += p.y(); cz += p.z();
+                    ++count;
+                }
+
+                if (count == 0) {
+                    put(nmap, m_pointCloud[i], CGAL::NULL_VECTOR);
+                    continue;
+                }
+
+                const Point centroid(cx / count, cy / count, cz / count);
+                // Outward-biased vector: from local centroid to the query point
+                Vector v = Vector(centroid, query);
+                const auto s = v.squared_length();
+                if (s <= static_cast<K::FT>(1e-16)) {
+                    put(nmap, m_pointCloud[i], CGAL::NULL_VECTOR);
+                } else {
+                    const double len = std::sqrt(CGAL::to_double(s));
+                    put(nmap, m_pointCloud[i], v / len);
+                }
+            }
+
+            // Try to orient normals consistently using MST over k-NN graph
+            CGAL::mst_orient_normals(m_pointCloud, k_neighbors,
+                                     CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>())
+                                         .normal_map(CGAL::Second_of_pair_property_map<PointWithNormal>()));
+            return true;
+        }
+        case NormalEstimationMethod::VCM_ESTIMATION: {
+            // Voronoi Covariance Measure-based normal estimation (robust to noise/outliers)
+            const double spacing = CGAL::compute_average_spacing<CGAL::Sequential_tag>(
+                m_pointCloud, 6,
+                CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>())
+            );
+            const double neighbor_radius = 2.0 * spacing;
+            const double convolution_radius = 4.0 * spacing;
+
+            CGAL::vcm_estimate_normals(
+                m_pointCloud,
+                neighbor_radius,
+                convolution_radius,
+                CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>())
+                    .normal_map(CGAL::Second_of_pair_property_map<PointWithNormal>())
+            );
+
+            // Orient normals consistently
+            const int k_neighbors = 24;
+            CGAL::mst_orient_normals(m_pointCloud, k_neighbors,
+                                     CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>())
+                                         .normal_map(CGAL::Second_of_pair_property_map<PointWithNormal>()));
             return true;
         }
         // Other cases for different normal estimation methods can be added here.
@@ -204,8 +288,7 @@ bool CGALPointCloudProcessor::processPoissonWithParams(const PoissonReconstructi
         CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>())
     );
     const double spacing = base_spacing * spacing_scale;
-    sm_radius = spacing * sm_radius;
-    sm_distance = spacing * sm_distance;
+    // sm_radius and sm_distance are specified relative to spacing; no extra scaling needed
     const bool ok = CGAL::poisson_surface_reconstruction_delaunay(
         m_pointCloud.begin(), m_pointCloud.end(),
         CGAL::First_of_pair_property_map<PointWithNormal>(),
