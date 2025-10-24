@@ -52,8 +52,13 @@ private:
     QPointer<ParameterDialog> m_poissonParamDialog {nullptr};
     QPointer<ParameterDialog> m_scaleSpaceParamDialog {nullptr};
     QPointer<ParameterDialog> m_advancingFrontParamDialog {nullptr};
-    // New: mesh post-process parameter dialog
+    // Mesh post-process parameter dialog
     QPointer<ParameterDialog> m_postProcessParamDialog {nullptr};
+    // Point cloud operation dialogs
+    QPointer<ParameterDialog> m_voxelDownsampleDialog {nullptr};
+    QPointer<ParameterDialog> m_filterAABBDialog {nullptr};
+    QPointer<ParameterDialog> m_filterSphereDialog {nullptr};
+    QPointer<ParameterDialog> m_uniformSurfaceDialog {nullptr};
 private:
     void ConnectViewSettings();
     void ConnectSplitPlaneControls();
@@ -66,3 +71,4 @@ private:
 
 
 #endif //POINTTOMESH_MAINWINDOW_H
+

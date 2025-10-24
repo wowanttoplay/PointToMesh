@@ -217,4 +217,41 @@ void MainWindow::ConnectMeshTools() {
             );
         });
     }
+    // Wire Point Cloud tools as well
+    if (auto a = findChild<QAction*>("actionVoxelDownsample")) {
+        connect(a, &QAction::triggered, this, [this]{
+            openOrCreateParamDialog(
+                m_voxelDownsampleDialog,
+                [this]() { auto* p = new VoxelDownsampleParameter(this); p->cell_size = 0.0; return p; },
+                [this](BaseInputParameter* p){ if (m_controller) { auto snapshot = p ? p->clone() : nullptr; m_controller->runDownsampleVoxel(std::move(snapshot)); } }
+            );
+        });
+    }
+    if (auto a = findChild<QAction*>("actionFilterAABB")) {
+        connect(a, &QAction::triggered, this, [this]{
+            openOrCreateParamDialog(
+                m_filterAABBDialog,
+                [this]() { return new AABBFilterParameter(this); },
+                [this](BaseInputParameter* p){ if (m_controller) { auto s = p ? p->clone() : nullptr; m_controller->runFilterAABB(std::move(s)); } }
+            );
+        });
+    }
+    if (auto a = findChild<QAction*>("actionFilterSphere")) {
+        connect(a, &QAction::triggered, this, [this]{
+            openOrCreateParamDialog(
+                m_filterSphereDialog,
+                [this]() { return new SphereFilterParameter(this); },
+                [this](BaseInputParameter* p){ if (m_controller) { auto s = p ? p->clone() : nullptr; m_controller->runFilterSphere(std::move(s)); } }
+            );
+        });
+    }
+    if (auto a = findChild<QAction*>("actionFilterSurfaceFromUniformVolume")) {
+        connect(a, &QAction::triggered, this, [this]{
+            openOrCreateParamDialog(
+                m_uniformSurfaceDialog,
+                [this]() { return new UniformVolumeSurfaceFilterParameter(this); },
+                [this](BaseInputParameter* p){ if (m_controller) { auto s = p ? p->clone() : nullptr; m_controller->runFilterUniformVolumeSurface(std::move(s)); } }
+            );
+        });
+    }
 }

@@ -119,10 +119,10 @@ public:
 
     /**
      * @brief Downsample the point cloud using a voxel grid (CGAL grid simplification).
-     * @param cell_size Size of the cubic voxel cells in the same units as the point cloud.
+     *        Parameters are provided via VoxelDownsampleParameter cast from BaseInputParameter.
      * @return True if downsampling succeeded and the point cloud was modified.
      */
-    virtual bool downsampleVoxel(double cell_size) = 0;
+    virtual bool downsampleVoxel(const BaseInputParameter* params) = 0;
 
     /**
      * @brief Keep or remove points based on an axis-aligned bounding box.

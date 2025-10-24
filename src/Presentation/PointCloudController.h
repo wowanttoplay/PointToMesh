@@ -22,6 +22,12 @@ public:
     // New: post-process mesh with parameters
     void runPostProcessMesh(std::unique_ptr<BaseInputParameter> params);
 
+    // New: point cloud ops
+    void runDownsampleVoxel(std::unique_ptr<BaseInputParameter> params);
+    void runFilterAABB(std::unique_ptr<BaseInputParameter> params);
+    void runFilterSphere(std::unique_ptr<BaseInputParameter> params);
+    void runFilterUniformVolumeSurface(std::unique_ptr<BaseInputParameter> params);
+
     // Re-import the last loaded point cloud from disk. If none, emits a log message.
     void resetToOriginal();
 
@@ -40,6 +46,12 @@ signals:
     void workerExport(const QString& path, bool withNormals);
     void workerEstimateNormals(NormalEstimationMethod method);
     void workerPostProcessMesh(BaseInputParameter* params);
+
+    // New: point cloud ops signals
+    void workerDownsampleVoxel(BaseInputParameter* params);
+    void workerFilterAABB(BaseInputParameter* params);
+    void workerFilterSphere(BaseInputParameter* params);
+    void workerFilterUniformVolumeSurface(BaseInputParameter* params);
 
 private slots:
     void onWorkerLog(const QString& m) { emit logMessage(m); }

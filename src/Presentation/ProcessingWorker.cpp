@@ -147,3 +147,51 @@ void ProcessingWorker::postProcessMeshWith(BaseInputParameter* params) {
     emit meshReady(toMeshModel(m_proc->getMesh()));
     emit logMessage(QStringLiteral("Mesh post-process finished."));
 }
+
+void ProcessingWorker::downsampleVoxelWith(BaseInputParameter* params) {
+    std::unique_ptr<BaseInputParameter> guard(params);
+    if (!m_proc) { emit logMessage("Processor not initialized."); return; }
+    emit logMessage(QStringLiteral("Downsampling point cloud (voxel grid)..."));
+    if (!m_proc->downsampleVoxel(guard.get())) {
+        emit logMessage(QStringLiteral("Voxel downsample failed."));
+        return;
+    }
+    emit pointCloudReady(toPointCloudModel(m_proc->getPointCloud()));
+    emit logMessage(QStringLiteral("Voxel downsample finished."));
+}
+
+void ProcessingWorker::filterPointCloudAABB(BaseInputParameter* params) {
+    std::unique_ptr<BaseInputParameter> guard(params);
+    if (!m_proc) { emit logMessage("Processor not initialized."); return; }
+    emit logMessage(QStringLiteral("Filtering point cloud by AABB..."));
+    if (!m_proc->filterAABB(guard.get())) {
+        emit logMessage(QStringLiteral("AABB filter failed."));
+        return;
+    }
+    emit pointCloudReady(toPointCloudModel(m_proc->getPointCloud()));
+    emit logMessage(QStringLiteral("AABB filter finished."));
+}
+
+void ProcessingWorker::filterPointCloudSphere(BaseInputParameter* params) {
+    std::unique_ptr<BaseInputParameter> guard(params);
+    if (!m_proc) { emit logMessage("Processor not initialized."); return; }
+    emit logMessage(QStringLiteral("Filtering point cloud by sphere..."));
+    if (!m_proc->filterSphere(guard.get())) {
+        emit logMessage(QStringLiteral("Sphere filter failed."));
+        return;
+    }
+    emit pointCloudReady(toPointCloudModel(m_proc->getPointCloud()));
+    emit logMessage(QStringLiteral("Sphere filter finished."));
+}
+
+void ProcessingWorker::filterUniformVolumeSurface(BaseInputParameter* params) {
+    std::unique_ptr<BaseInputParameter> guard(params);
+    if (!m_proc) { emit logMessage("Processor not initialized."); return; }
+    emit logMessage(QStringLiteral("Filtering surface points from uniform volume..."));
+    if (!m_proc->filterSurfaceFromUniformVolume(guard.get())) {
+        emit logMessage(QStringLiteral("Uniform-volume surface filter failed."));
+        return;
+    }
+    emit pointCloudReady(toPointCloudModel(m_proc->getPointCloud()));
+    emit logMessage(QStringLiteral("Uniform-volume surface filter finished."));
+}

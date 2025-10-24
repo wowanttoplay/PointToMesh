@@ -21,6 +21,12 @@ public slots:
     // New: mesh post-process; takes ownership of params and deletes in worker thread
     void postProcessMeshWith(BaseInputParameter* params);
 
+    // New: point cloud operations
+    void downsampleVoxelWith(BaseInputParameter* params);
+    void filterPointCloudAABB(BaseInputParameter* params);
+    void filterPointCloudSphere(BaseInputParameter* params);
+    void filterUniformVolumeSurface(BaseInputParameter* params);
+
 signals:
     void logMessage(const QString& message);
     void pointCloudReady(PointCloudPtr cloud);

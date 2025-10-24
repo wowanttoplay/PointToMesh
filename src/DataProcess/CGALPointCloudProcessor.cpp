@@ -371,6 +371,22 @@ bool CGALPointCloudProcessor::downsampleVoxel(double cell_size) {
     return m_pointCloud.size() <= before; // true even if unchanged
 }
 
+bool CGALPointCloudProcessor::downsampleVoxel(const BaseInputParameter* params) {
+    if (m_pointCloud.empty()) { std::cerr << "Error: No point cloud loaded." << std::endl; return false; }
+    const auto* p = params ? dynamic_cast<const VoxelDownsampleParameter*>(params) : nullptr;
+    if (!p) { std::cerr << "Error: VoxelDownsampleParameter expected." << std::endl; return false; }
+    const double cell_size = p->cell_size;
+    if (!(cell_size > 0.0)) { std::cerr << "Error: cell_size must be > 0." << std::endl; return false; }
+
+    const std::size_t before = m_pointCloud.size();
+    auto end = CGAL::grid_simplify_point_set(m_pointCloud,
+                                             cell_size,
+                                             CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>()));
+    m_pointCloud.erase(end, m_pointCloud.end());
+
+    return m_pointCloud.size() <= before;
+}
+
 bool CGALPointCloudProcessor::filterAABB(const BaseInputParameter* params) {
     if (m_pointCloud.empty()) { std::cerr << "Error: No point cloud loaded." << std::endl; return false; }
     const auto* aabb = params ? dynamic_cast<const AABBFilterParameter*>(params) : nullptr;

@@ -27,7 +27,7 @@ public:
     [[nodiscard]] bool hasNormals() const override;
 
     // New point cloud utilities
-    bool downsampleVoxel(double cell_size) override;
+    bool downsampleVoxel(const BaseInputParameter* params) override; // matches interface
     bool filterAABB(const BaseInputParameter* params) override;
     bool filterSphere(const BaseInputParameter* params) override;
     bool filterSurfaceFromUniformVolume(const BaseInputParameter* params) override;
@@ -45,6 +45,9 @@ private:
     bool estimateNormalsJet();
     bool estimateNormalsUniformVolumeCentroid();
     bool estimateNormalsVCM();
+
+    // Helper overload for voxel downsampling with raw value
+    bool downsampleVoxel(double cell_size);
 
     PointCloud m_pointCloud;
     Mesh m_mesh;

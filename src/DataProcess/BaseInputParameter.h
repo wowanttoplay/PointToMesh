@@ -247,11 +247,34 @@ public:
     int max_neighbors = 24;
 };
 
+// New: Voxel downsample parameters
+class VoxelDownsampleParameter : public BaseInputParameter {
+    Q_OBJECT
+    Q_PROPERTY(double cell_size MEMBER cell_size)
+public:
+    explicit VoxelDownsampleParameter(QObject *parent = nullptr) : BaseInputParameter(parent) {}
+    ~VoxelDownsampleParameter() override = default;
+
+    [[nodiscard]] std::unique_ptr<BaseInputParameter> clone() const override {
+        auto copy = std::make_unique<VoxelDownsampleParameter>();
+        copy->cell_size = cell_size;
+        return copy;
+    }
+
+    [[nodiscard]] QString propertyToolTip(const QString& name) const override {
+        if (name == "cell_size") return QStringLiteral("Voxel grid cell size (same unit as points). Larger removes more points, increasing sparsity.");
+        return {};
+    }
+
+    double cell_size = 0.0;
+};
+
 Q_DECLARE_METATYPE(BaseInputParameter*)
 // Optionally register derived pointer types as well
 Q_DECLARE_METATYPE(MeshPostprocessParameter*)
 Q_DECLARE_METATYPE(AABBFilterParameter*)
 Q_DECLARE_METATYPE(SphereFilterParameter*)
 Q_DECLARE_METATYPE(UniformVolumeSurfaceFilterParameter*)
+Q_DECLARE_METATYPE(VoxelDownsampleParameter*)
 
 #endif //POINTTOMESH_BASEINPUTPARAMETER_H

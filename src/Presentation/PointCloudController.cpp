@@ -25,6 +25,12 @@ PointCloudController::PointCloudController(std::unique_ptr<PointCloudProcessor> 
     connect(this, &PointCloudController::workerEstimateNormals, m_worker, &ProcessingWorker::estimateNormals, Qt::QueuedConnection);
     connect(this, &PointCloudController::workerPostProcessMesh, m_worker, &ProcessingWorker::postProcessMeshWith, Qt::QueuedConnection);
 
+    // New: point cloud ops wiring
+    connect(this, &PointCloudController::workerDownsampleVoxel, m_worker, &ProcessingWorker::downsampleVoxelWith, Qt::QueuedConnection);
+    connect(this, &PointCloudController::workerFilterAABB, m_worker, &ProcessingWorker::filterPointCloudAABB, Qt::QueuedConnection);
+    connect(this, &PointCloudController::workerFilterSphere, m_worker, &ProcessingWorker::filterPointCloudSphere, Qt::QueuedConnection);
+    connect(this, &PointCloudController::workerFilterUniformVolumeSurface, m_worker, &ProcessingWorker::filterUniformVolumeSurface, Qt::QueuedConnection);
+
     // Downstream wiring: worker -> controller
     connect(m_worker, &ProcessingWorker::logMessage,      this, &PointCloudController::onWorkerLog,        Qt::QueuedConnection);
     connect(m_worker, &ProcessingWorker::pointCloudReady, this, &PointCloudController::onPointCloudReady,  Qt::QueuedConnection);
@@ -70,4 +76,24 @@ void PointCloudController::exportMesh(const QString& path, bool withNormals) {
 void PointCloudController::runPostProcessMesh(std::unique_ptr<BaseInputParameter> params) {
     BaseInputParameter* raw = params.release();
     emit workerPostProcessMesh(raw);
+}
+
+void PointCloudController::runDownsampleVoxel(std::unique_ptr<BaseInputParameter> params) {
+    BaseInputParameter* raw = params.release();
+    emit workerDownsampleVoxel(raw);
+}
+
+void PointCloudController::runFilterAABB(std::unique_ptr<BaseInputParameter> params) {
+    BaseInputParameter* raw = params.release();
+    emit workerFilterAABB(raw);
+}
+
+void PointCloudController::runFilterSphere(std::unique_ptr<BaseInputParameter> params) {
+    BaseInputParameter* raw = params.release();
+    emit workerFilterSphere(raw);
+}
+
+void PointCloudController::runFilterUniformVolumeSurface(std::unique_ptr<BaseInputParameter> params) {
+    BaseInputParameter* raw = params.release();
+    emit workerFilterUniformVolumeSurface(raw);
 }

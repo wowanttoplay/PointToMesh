@@ -50,6 +50,10 @@
       <string>Point Cloud</string>
      </property>
      <addaction name="actionResetPointCloud"/>
+     <addaction name="actionVoxelDownsample"/>
+     <addaction name="actionFilterAABB"/>
+     <addaction name="actionFilterSphere"/>
+     <addaction name="actionFilterSurfaceFromUniformVolume"/>
     </widget>
     <!-- New Mesh submenu for post-processing -->
     <widget class="QMenu" name="menuMesh">
@@ -148,6 +152,26 @@
   <action name="actionPostProcessMesh">
    <property name="text">
     <string>Post-process Mesh...</string>
+   </property>
+  </action>
+  <action name="actionVoxelDownsample">
+   <property name="text">
+    <string>Voxel Downsample...</string>
+   </property>
+  </action>
+  <action name="actionFilterAABB">
+   <property name="text">
+    <string>Filter by AABB...</string>
+   </property>
+  </action>
+  <action name="actionFilterSphere">
+   <property name="text">
+    <string>Filter by Sphere...</string>
+   </property>
+  </action>
+  <action name="actionFilterSurfaceFromUniformVolume">
+   <property name="text">
+    <string>Surface from Uniform Volume...</string>
    </property>
   </action>
  </widget>
