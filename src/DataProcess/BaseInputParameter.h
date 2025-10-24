@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <memory>
+#include <QString>
 
 class BaseInputParameter : public QObject {
     Q_OBJECT
@@ -16,6 +17,9 @@ public:
 
     // Create a deep copy without a QObject parent (safe to move across threads)
     virtual std::unique_ptr<BaseInputParameter> clone() const = 0;
+
+    // Optional: return a tooltip/description for a given property name; empty if not available
+    virtual QString propertyToolTip(const QString& name) const { Q_UNUSED(name); return QString(); }
 };
 
 class PoissonReconstructionParameter : public BaseInputParameter {
@@ -41,6 +45,15 @@ public:
         return copy;
     }
 
+    QString propertyToolTip(const QString& name) const override {
+        if (name == "angle") return QStringLiteral("Minimum triangle angle (degrees). Larger avoids skinny triangles; too large may lose details.");
+        if (name == "radius") return QStringLiteral("Max triangle size multiplier: max edge ≈ radius × average spacing. Smaller suppresses long edges but may create holes.");
+        if (name == "distance") return QStringLiteral("Allowed point-to-surface deviation ≈ distance × average spacing. Smaller fits data (noisier); larger is smoother.");
+        if (name == "neighbors_number") return QStringLiteral("Neighbor count used to estimate average spacing. Affects stability and performance.");
+        if (name == "spacing_scale") return QStringLiteral("Scale applied to estimated average spacing. >1 smoother/coarser; <1 tighter/more details.");
+        return {};
+    }
+
     double angle = 20.0;
     double radius = 30.0;
     double distance = 0.375;
@@ -59,6 +72,11 @@ public:
         auto copy = std::make_unique<ScaleSpaceReconstructionParameter>();
         copy->iterations_number = iterations_number;
         return copy;
+    }
+
+    QString propertyToolTip(const QString& name) const override {
+        if (name == "iterations_number") return QStringLiteral("Number of scale-increase iterations. More is smoother/simpler (possible detail loss).");
+        return {};
     }
 
     int iterations_number = 4;
@@ -105,6 +123,19 @@ public:
         return copy;
     }
 
+    QString propertyToolTip(const QString& name) const override {
+        if (name == "keep_largest_components") return QStringLiteral("Keep only the largest N connected components. 0 keeps all; >1 helps remove floating fragments.");
+        if (name == "remove_degenerate_faces") return QStringLiteral("Remove degenerate triangles (zero area/duplicate vertices) to avoid downstream issues.");
+        if (name == "remove_isolated_vertices") return QStringLiteral("Remove vertices not used by any face to clean the mesh.");
+        if (name == "stitch_borders") return QStringLiteral("Stitch near-coincident boundary edges to close cracks, aiding hole filling and remeshing.");
+        if (name == "fill_holes_max_cycle_edges") return QStringLiteral("Fill holes whose border cycle length is ≤ this value. Larger fills more; too large may close real openings.");
+        if (name == "remesh_iterations") return QStringLiteral("Number of isotropic remeshing iterations. More improves triangle quality, increases resampling.");
+        if (name == "remesh_target_edge_length") return QStringLiteral("Target edge length. 0 uses average edge length; smaller subdivides, larger simplifies.");
+        if (name == "smooth_iterations") return QStringLiteral("Number of angle-and-area smoothing iterations. More smoothing, possible shrinkage.");
+        if (name == "recompute_normals") return QStringLiteral("Recompute per-vertex normals for consistent/updated normals (also used on export).");
+        return {};
+    }
+
     int keep_largest_components = 0;
     bool remove_degenerate_faces = true;
     bool remove_isolated_vertices = true;
@@ -138,6 +169,13 @@ public:
         return copy;
     }
 
+    QString propertyToolTip(const QString& name) const override {
+        if (name == "min_x" || name == "min_y" || name == "min_z") return QStringLiteral("Minimum coordinate of the axis-aligned bounding box (AABB).");
+        if (name == "max_x" || name == "max_y" || name == "max_z") return QStringLiteral("Maximum coordinate of the axis-aligned bounding box (AABB).");
+        if (name == "keepInside") return QStringLiteral("If true, keep points inside the box; otherwise remove inside points (keep outside).");
+        return {};
+    }
+
     double min_x = 0.0;
     double min_y = 0.0;
     double min_z = 0.0;
@@ -163,6 +201,13 @@ public:
         auto copy = std::make_unique<SphereFilterParameter>();
         copy->cx = cx; copy->cy = cy; copy->cz = cz; copy->radius = radius; copy->keepInside = keepInside;
         return copy;
+    }
+
+    QString propertyToolTip(const QString& name) const override {
+        if (name == "cx" || name == "cy" || name == "cz") return QStringLiteral("Sphere center coordinate.");
+        if (name == "radius") return QStringLiteral("Sphere radius; controls the selection region size.");
+        if (name == "keepInside") return QStringLiteral("If true, keep points inside the sphere; otherwise remove inside points (keep outside).");
+        return {};
     }
 
     double cx = 0.0;

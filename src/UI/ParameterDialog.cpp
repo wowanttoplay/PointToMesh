@@ -62,7 +62,15 @@ ParameterDialog::ParameterDialog(BaseInputParameter *params, QWidget *parent)
                 editor = le;
             }
 
-            form->addRow(new QLabel(name + ":", this), editor);
+            auto *label = new QLabel(name + ":", this);
+            // Query tooltip from parameter object; set on both label and editor
+            const QString tip = m_params ? m_params->propertyToolTip(name) : QString();
+            if (!tip.isEmpty()) {
+                label->setToolTip(tip);
+                if (editor) editor->setToolTip(tip);
+            }
+
+            form->addRow(label, editor);
             m_editors.insert(name, editor);
         }
     }
