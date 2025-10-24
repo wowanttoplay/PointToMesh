@@ -8,6 +8,7 @@
 #include <QMainWindow>
 #include <QPointer>
 #include <memory>
+#include <functional>
 
 class SplitPlaneDocker;
 class QCloseEvent;
@@ -18,6 +19,7 @@ class PointCloudController; // forward declaration
 class WindowStateGuard; // forward declaration
 class ViewSettingsDialog; // forward declaration
 class ParameterDialog; // forward declaration
+class BaseInputParameter; // forward declaration for parameter builder/wiring
 
 QT_BEGIN_NAMESPACE
 
@@ -56,6 +58,10 @@ private:
     void ConnectViewSettings();
     void ConnectSplitPlaneControls();
     void ConnectLogView();
+    // Helper to create/show a reusable ParameterDialog instance
+    void openOrCreateParamDialog(QPointer<ParameterDialog>& slot,
+                                 std::function<BaseInputParameter*()> factory,
+                                 std::function<void(BaseInputParameter*)> onApply);
 };
 
 

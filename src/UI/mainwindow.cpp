@@ -14,6 +14,7 @@
 #include <QtGlobal>
 #include <QAction>
 #include <QDockWidget>
+#include <functional>
 
 #include "splitplanedocker.h"
 #include "../Settings//WindowStateGuard.h"
@@ -128,60 +129,63 @@ void MainWindow::ConnectLogView() {
 }
 
 
+// Helper to centralize ParameterDialog lifecycle and Apply wiring
+void MainWindow::openOrCreateParamDialog(QPointer<ParameterDialog>& slot,
+                                         std::function<BaseInputParameter*()> factory,
+                                         std::function<void(BaseInputParameter*)> onApply) {
+    if (!slot) {
+        BaseInputParameter* params = factory ? factory() : nullptr;
+        slot = new ParameterDialog(params, this);
+        if (onApply) {
+            connect(slot, &ParameterDialog::applyClicked, this, onApply);
+        }
+    }
+    slot->show();
+    slot->raise();
+    slot->activateWindow();
+}
+
 void MainWindow::ConnectReconstructions() {
     if (auto a = findChild<QAction*>("actionReconstructPoisson")) {
         connect(a, &QAction::triggered, this, [this]{
-            if (!m_poissonParamDialog) {
-                // params owned by MainWindow (parent=this) so they live until app close; safe to reuse
-                auto *params = new PoissonReconstructionParameter(this);
-                m_poissonParamDialog = new ParameterDialog(params, this);
-                connect(m_poissonParamDialog, &ParameterDialog::applyClicked, this, [this](BaseInputParameter* p){
-                    if (m_controller) {
-                        std::unique_ptr<BaseInputParameter> snapshot;
-                        if (p) snapshot = p->clone();
-                        m_controller->runReconstructionWith(MeshGenerationMethod::POISSON_RECONSTRUCTION, std::move(snapshot));
-                    }
-                });
-            }
-            m_poissonParamDialog->show();
-            m_poissonParamDialog->raise();
-            m_poissonParamDialog->activateWindow();
+            openOrCreateParamDialog(
+                m_poissonParamDialog,
+                [this]() { return new PoissonReconstructionParameter(this); },
+                [this](BaseInputParameter* p){
+                    if (!m_controller) return;
+                    std::unique_ptr<BaseInputParameter> snapshot;
+                    if (p) snapshot = p->clone();
+                    m_controller->runReconstructionWith(MeshGenerationMethod::POISSON_RECONSTRUCTION, std::move(snapshot));
+                }
+            );
         });
     }
     if (auto a = findChild<QAction*>("actionReconstructScaleSpace")) {
         connect(a, &QAction::triggered, this, [this]{
-            if (!m_scaleSpaceParamDialog) {
-                auto *params = new ScaleSpaceReconstructionParameter(this);
-                m_scaleSpaceParamDialog = new ParameterDialog(params, this);
-                connect(m_scaleSpaceParamDialog, &ParameterDialog::applyClicked, this, [this](BaseInputParameter* p){
-                    if (m_controller) {
-                        std::unique_ptr<BaseInputParameter> snapshot;
-                        if (p) snapshot = p->clone();
-                        m_controller->runReconstructionWith(MeshGenerationMethod::SCALE_SPACE_RECONSTRUCTION, std::move(snapshot));
-                    }
-                });
-            }
-            m_scaleSpaceParamDialog->show();
-            m_scaleSpaceParamDialog->raise();
-            m_scaleSpaceParamDialog->activateWindow();
+            openOrCreateParamDialog(
+                m_scaleSpaceParamDialog,
+                [this]() { return new ScaleSpaceReconstructionParameter(this); },
+                [this](BaseInputParameter* p){
+                    if (!m_controller) return;
+                    std::unique_ptr<BaseInputParameter> snapshot;
+                    if (p) snapshot = p->clone();
+                    m_controller->runReconstructionWith(MeshGenerationMethod::SCALE_SPACE_RECONSTRUCTION, std::move(snapshot));
+                }
+            );
         });
     }
     if (auto a = findChild<QAction*>("actionReconstructAdvancingFront")) {
         connect(a, &QAction::triggered, this, [this]{
-            if (!m_advancingFrontParamDialog) {
-                auto *params = new AdvancingFrontReconstructionParameter(this);
-                m_advancingFrontParamDialog = new ParameterDialog(params, this);
-                connect(m_advancingFrontParamDialog, &ParameterDialog::applyClicked, this, [this](BaseInputParameter* p){
-                    if (m_controller) {
-                        std::unique_ptr<BaseInputParameter> snapshot;
-                        if (p) snapshot = p->clone();
-                        m_controller->runReconstructionWith(MeshGenerationMethod::ADVANCING_FRONT_RECONSTRUCTION, std::move(snapshot));
-                    }
-                });
-            }
-            m_advancingFrontParamDialog->show();
-            m_advancingFrontParamDialog->raise();
-            m_advancingFrontParamDialog->activateWindow();
+            openOrCreateParamDialog(
+                m_advancingFrontParamDialog,
+                [this]() { return new AdvancingFrontReconstructionParameter(this); },
+                [this](BaseInputParameter* p){
+                    if (!m_controller) return;
+                    std::unique_ptr<BaseInputParameter> snapshot;
+                    if (p) snapshot = p->clone();
+                    m_controller->runReconstructionWith(MeshGenerationMethod::ADVANCING_FRONT_RECONSTRUCTION, std::move(snapshot));
+                }
+            );
         });
     }
 }
@@ -201,20 +205,16 @@ void MainWindow::ConnectNormalEstimations() {
 void MainWindow::ConnectMeshTools() {
     if (auto a = findChild<QAction*>("actionPostProcessMesh")) {
         connect(a, &QAction::triggered, this, [this]{
-            if (!m_postProcessParamDialog) {
-                auto *params = new MeshPostprocessParameter(this);
-                m_postProcessParamDialog = new ParameterDialog(params, this);
-                connect(m_postProcessParamDialog, &ParameterDialog::applyClicked, this, [this](BaseInputParameter* p){
-                    if (m_controller) {
-                        std::unique_ptr<BaseInputParameter> snapshot;
-                        if (p) snapshot = p->clone();
-                        m_controller->runPostProcessMesh(std::move(snapshot));
-                    }
-                });
-            }
-            m_postProcessParamDialog->show();
-            m_postProcessParamDialog->raise();
-            m_postProcessParamDialog->activateWindow();
+            openOrCreateParamDialog(
+                m_postProcessParamDialog,
+                [this]() { return new MeshPostprocessParameter(this); },
+                [this](BaseInputParameter* p){
+                    if (!m_controller) return;
+                    std::unique_ptr<BaseInputParameter> snapshot;
+                    if (p) snapshot = p->clone();
+                    m_controller->runPostProcessMesh(std::move(snapshot));
+                }
+            );
         });
     }
 }
