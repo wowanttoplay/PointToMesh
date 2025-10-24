@@ -18,6 +18,11 @@
 
 ParameterDialog::ParameterDialog(BaseInputParameter *params, QWidget *parent)
     : QDialog(parent), m_params(params) {
+    // Ensure this dialog always floats above the main window
+    setWindowFlag(Qt::WindowStaysOnTopHint, true);
+    // Keep it non-modal and floating like a tool panel
+    setWindowFlag(Qt::Tool, true);
+
     QFormLayout *form = new QFormLayout(this);
 
     const QMetaObject *mo = params ? params->metaObject() : nullptr;
