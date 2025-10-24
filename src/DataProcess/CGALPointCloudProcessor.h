@@ -30,6 +30,7 @@ public:
     bool downsampleVoxel(double cell_size) override;
     bool filterAABB(const BaseInputParameter* params) override;
     bool filterSphere(const BaseInputParameter* params) override;
+    bool filterSurfaceFromUniformVolume(const BaseInputParameter* params) override;
 
     // New mesh post-processing utilities
     bool postProcessMesh(const BaseInputParameter* params) override;
@@ -39,9 +40,6 @@ private:
     bool processPoissonWithParams(const PoissonReconstructionParameter* poisson);
     bool processScaleSpaceWithParams(const ScaleSpaceReconstructionParameter* ss);
     bool processAdvancingFrontWithParams(const AdvancingFrontReconstructionParameter* af);
-
-    // Filtering point cloud surfaces
-
 
     // Normal estimation helpers
     bool estimateNormalsJet();

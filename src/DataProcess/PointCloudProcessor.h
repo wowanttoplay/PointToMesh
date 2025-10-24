@@ -136,6 +136,13 @@ public:
      */
     virtual bool filterSphere(const BaseInputParameter* params) = 0;
 
+    /**
+     * @brief Classify and keep surface points from a uniformly distributed volume point set.
+     *        Parameters are provided via UniformVolumeSurfaceFilterParameter cast from BaseInputParameter.
+     *        Typical approach: neighbor count within a radius based on average spacing.
+     */
+    virtual bool filterSurfaceFromUniformVolume(const BaseInputParameter* params) = 0;
+
     // --- New: Mesh post-processing ---
 
     /**

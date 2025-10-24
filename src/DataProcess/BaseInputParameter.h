@@ -16,10 +16,10 @@ public:
     ~BaseInputParameter() override = default;
 
     // Create a deep copy without a QObject parent (safe to move across threads)
-    virtual std::unique_ptr<BaseInputParameter> clone() const = 0;
+    [[nodiscard]] virtual std::unique_ptr<BaseInputParameter> clone() const = 0;
 
     // Optional: return a tooltip/description for a given property name; empty if not available
-    virtual QString propertyToolTip(const QString& name) const { Q_UNUSED(name); return QString(); }
+    [[nodiscard]] virtual QString propertyToolTip(const QString& name) const { Q_UNUSED(name); return {}; }
 };
 
 class PoissonReconstructionParameter : public BaseInputParameter {
@@ -35,7 +35,7 @@ public:
     explicit PoissonReconstructionParameter(QObject *parent = nullptr) : BaseInputParameter(parent) {}
     ~PoissonReconstructionParameter() override = default;
 
-    std::unique_ptr<BaseInputParameter> clone() const override {
+    [[nodiscard]] std::unique_ptr<BaseInputParameter> clone() const override {
         auto copy = std::make_unique<PoissonReconstructionParameter>();
         copy->angle = angle;
         copy->radius = radius;
@@ -45,7 +45,7 @@ public:
         return copy;
     }
 
-    QString propertyToolTip(const QString& name) const override {
+    [[nodiscard]] QString propertyToolTip(const QString& name) const override {
         if (name == "angle") return QStringLiteral("Minimum triangle angle (degrees). Larger avoids skinny triangles; too large may lose details.");
         if (name == "radius") return QStringLiteral("Max triangle size multiplier: max edge ≈ radius × average spacing. Smaller suppresses long edges but may create holes.");
         if (name == "distance") return QStringLiteral("Allowed point-to-surface deviation ≈ distance × average spacing. Smaller fits data (noisier); larger is smoother.");
@@ -68,13 +68,13 @@ public:
     explicit ScaleSpaceReconstructionParameter(QObject *parent = nullptr) : BaseInputParameter(parent) {}
     ~ScaleSpaceReconstructionParameter() override = default;
 
-    std::unique_ptr<BaseInputParameter> clone() const override {
+    [[nodiscard]] std::unique_ptr<BaseInputParameter> clone() const override {
         auto copy = std::make_unique<ScaleSpaceReconstructionParameter>();
         copy->iterations_number = iterations_number;
         return copy;
     }
 
-    QString propertyToolTip(const QString& name) const override {
+    [[nodiscard]] QString propertyToolTip(const QString& name) const override {
         if (name == "iterations_number") return QStringLiteral("Number of scale-increase iterations. More is smoother/simpler (possible detail loss).");
         return {};
     }
@@ -88,7 +88,7 @@ public:
     explicit AdvancingFrontReconstructionParameter(QObject *parent = nullptr) : BaseInputParameter(parent) {}
     ~AdvancingFrontReconstructionParameter() override = default;
 
-    std::unique_ptr<BaseInputParameter> clone() const override {
+    [[nodiscard]] std::unique_ptr<BaseInputParameter> clone() const override {
         return std::make_unique<AdvancingFrontReconstructionParameter>();
     }
 };
@@ -109,7 +109,7 @@ public:
     explicit MeshPostprocessParameter(QObject *parent = nullptr) : BaseInputParameter(parent) {}
     ~MeshPostprocessParameter() override = default;
 
-    std::unique_ptr<BaseInputParameter> clone() const override {
+    [[nodiscard]] std::unique_ptr<BaseInputParameter> clone() const override {
         auto copy = std::make_unique<MeshPostprocessParameter>();
         copy->keep_largest_components = keep_largest_components;
         copy->remove_degenerate_faces = remove_degenerate_faces;
@@ -123,7 +123,7 @@ public:
         return copy;
     }
 
-    QString propertyToolTip(const QString& name) const override {
+    [[nodiscard]] QString propertyToolTip(const QString& name) const override {
         if (name == "keep_largest_components") return QStringLiteral("Keep only the largest N connected components. 0 keeps all; >1 helps remove floating fragments.");
         if (name == "remove_degenerate_faces") return QStringLiteral("Remove degenerate triangles (zero area/duplicate vertices) to avoid downstream issues.");
         if (name == "remove_isolated_vertices") return QStringLiteral("Remove vertices not used by any face to clean the mesh.");
@@ -161,7 +161,7 @@ public:
     explicit AABBFilterParameter(QObject *parent = nullptr) : BaseInputParameter(parent) {}
     ~AABBFilterParameter() override = default;
 
-    std::unique_ptr<BaseInputParameter> clone() const override {
+    [[nodiscard]] std::unique_ptr<BaseInputParameter> clone() const override {
         auto copy = std::make_unique<AABBFilterParameter>();
         copy->min_x = min_x; copy->min_y = min_y; copy->min_z = min_z;
         copy->max_x = max_x; copy->max_y = max_y; copy->max_z = max_z;
@@ -169,7 +169,7 @@ public:
         return copy;
     }
 
-    QString propertyToolTip(const QString& name) const override {
+    [[nodiscard]] QString propertyToolTip(const QString& name) const override {
         if (name == "min_x" || name == "min_y" || name == "min_z") return QStringLiteral("Minimum coordinate of the axis-aligned bounding box (AABB).");
         if (name == "max_x" || name == "max_y" || name == "max_z") return QStringLiteral("Maximum coordinate of the axis-aligned bounding box (AABB).");
         if (name == "keepInside") return QStringLiteral("If true, keep points inside the box; otherwise remove inside points (keep outside).");
@@ -197,13 +197,13 @@ public:
     explicit SphereFilterParameter(QObject *parent = nullptr) : BaseInputParameter(parent) {}
     ~SphereFilterParameter() override = default;
 
-    std::unique_ptr<BaseInputParameter> clone() const override {
+    [[nodiscard]] std::unique_ptr<BaseInputParameter> clone() const override {
         auto copy = std::make_unique<SphereFilterParameter>();
         copy->cx = cx; copy->cy = cy; copy->cz = cz; copy->radius = radius; copy->keepInside = keepInside;
         return copy;
     }
 
-    QString propertyToolTip(const QString& name) const override {
+    [[nodiscard]] QString propertyToolTip(const QString& name) const override {
         if (name == "cx" || name == "cy" || name == "cz") return QStringLiteral("Sphere center coordinate.");
         if (name == "radius") return QStringLiteral("Sphere radius; controls the selection region size.");
         if (name == "keepInside") return QStringLiteral("If true, keep points inside the sphere; otherwise remove inside points (keep outside).");
@@ -217,11 +217,41 @@ public:
     bool keepInside = true;
 };
 
-// Make pointer type available for queued connections
+// New: Surface-from-uniform-volume filter parameters
+class UniformVolumeSurfaceFilterParameter : public BaseInputParameter {
+    Q_OBJECT
+    Q_PROPERTY(int neighbors_number MEMBER neighbors_number)
+    Q_PROPERTY(double radius_scale MEMBER radius_scale)
+    Q_PROPERTY(int max_neighbors MEMBER max_neighbors)
+public:
+    explicit UniformVolumeSurfaceFilterParameter(QObject *parent = nullptr) : BaseInputParameter(parent) {}
+    ~UniformVolumeSurfaceFilterParameter() override = default;
+
+    [[nodiscard]] std::unique_ptr<BaseInputParameter> clone() const override {
+        auto copy = std::make_unique<UniformVolumeSurfaceFilterParameter>();
+        copy->neighbors_number = neighbors_number;
+        copy->radius_scale = radius_scale;
+        copy->max_neighbors = max_neighbors;
+        return copy;
+    }
+
+    [[nodiscard]] QString propertyToolTip(const QString& name) const override {
+        if (name == "neighbors_number") return QStringLiteral("Neighbors used to estimate average spacing. Typical: 24.");
+        if (name == "radius_scale") return QStringLiteral("Radius = radius_scale × average spacing for neighbor counting. Larger radius increases counts.");
+        if (name == "max_neighbors") return QStringLiteral("Keep points whose neighbor count within radius is ≤ this threshold (surface tends to have fewer neighbors).");
+        return {};
+    }
+
+    int neighbors_number = 24;
+    double radius_scale = 2.0;
+    int max_neighbors = 24;
+};
+
 Q_DECLARE_METATYPE(BaseInputParameter*)
 // Optionally register derived pointer types as well
 Q_DECLARE_METATYPE(MeshPostprocessParameter*)
 Q_DECLARE_METATYPE(AABBFilterParameter*)
 Q_DECLARE_METATYPE(SphereFilterParameter*)
+Q_DECLARE_METATYPE(UniformVolumeSurfaceFilterParameter*)
 
 #endif //POINTTOMESH_BASEINPUTPARAMETER_H

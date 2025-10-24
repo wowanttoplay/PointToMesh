@@ -23,7 +23,8 @@ namespace PMP = CGAL::Polygon_mesh_processing;
 
 // Neighbor search for centroid-based normals
 #include <CGAL/Search_traits_3.h>
-#include <CGAL/Orthogonal_k_neighbor_search.h>
+#include <CGAL/Kd_tree.h>
+#include <CGAL/Fuzzy_sphere.h>
 
 #include "BaseInputParameter.h"
 
@@ -417,6 +418,52 @@ bool CGALPointCloudProcessor::filterSphere(const BaseInputParameter* params) {
         const bool in = d2 <= r2;
         return keepInside ? !in : in;
     }), m_pointCloud.end());
+
+    return m_pointCloud.size() <= before;
+}
+
+bool CGALPointCloudProcessor::filterSurfaceFromUniformVolume(const BaseInputParameter* params) {
+    if (m_pointCloud.empty()) { std::cerr << "Error: No point cloud loaded." << std::endl; return false; }
+    const auto* opt = params ? dynamic_cast<const UniformVolumeSurfaceFilterParameter*>(params) : nullptr;
+    if (!opt) { std::cerr << "Error: UniformVolumeSurfaceFilterParameter expected." << std::endl; return false; }
+    if (!(opt->neighbors_number > 0)) { std::cerr << "Error: neighbors_number must be > 0." << std::endl; return false; }
+    if (!(opt->radius_scale > 0.0)) { std::cerr << "Error: radius_scale must be > 0." << std::endl; return false; }
+    if (!(opt->max_neighbors >= 0)) { std::cerr << "Error: max_neighbors must be >= 0." << std::endl; return false; }
+
+    // Estimate average spacing for scale
+    const double spacing = CGAL::compute_average_spacing<CGAL::Sequential_tag>(
+        m_pointCloud, opt->neighbors_number,
+        CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>())
+    );
+    const double radius = spacing * opt->radius_scale;
+
+    using Traits = CGAL::Search_traits_3<K>;
+    using Tree = CGAL::Kd_tree<Traits>;
+    using Fuzzy_sphere = CGAL::Fuzzy_sphere<Traits>;
+
+    std::vector<Point> pts; pts.reserve(m_pointCloud.size());
+    for (const auto& pn : m_pointCloud) pts.push_back(pn.first);
+    Tree tree(pts.begin(), pts.end());
+
+    std::vector<char> keep(pts.size(), 0);
+    std::vector<Point> buffer; buffer.reserve(64);
+    for (std::size_t i = 0; i < pts.size(); ++i) {
+        buffer.clear();
+        Fuzzy_sphere region(pts[i], radius);
+        tree.search(std::back_inserter(buffer), region);
+        int count = static_cast<int>(buffer.size());
+        // Remove self if included (Kd_tree may return the query point depending on implementation)
+        // Conservatively subtract 1 when radius > 0 and there is at least one result.
+        if (count > 0) --count;
+        if (count <= opt->max_neighbors) keep[i] = 1;
+    }
+
+    const std::size_t before = m_pointCloud.size();
+    std::size_t w = 0;
+    for (std::size_t i = 0; i < m_pointCloud.size(); ++i) {
+        if (keep[i]) m_pointCloud[w++] = m_pointCloud[i];
+    }
+    m_pointCloud.resize(w);
 
     return m_pointCloud.size() <= before;
 }
