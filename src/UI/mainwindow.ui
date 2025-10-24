@@ -44,8 +44,15 @@
      <addaction name="actionReconstructScaleSpace"/>
      <addaction name="actionReconstructAdvancingFront"/>
     </widget>
-    <!-- Removed addaction for menuNormalEstimation -->
+    <!-- New Point Cloud submenu with reset action -->
+    <widget class="QMenu" name="menuPointCloud">
+     <property name="title">
+      <string>Point Cloud</string>
+     </property>
+     <addaction name="actionResetPointCloud"/>
+    </widget>
     <addaction name="menuReconstruction"/>
+    <addaction name="menuPointCloud"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -122,6 +129,11 @@
   <action name="actionOutputView">
    <property name="text">
     <string>Output View</string>
+   </property>
+  </action>
+  <action name="actionResetPointCloud">
+   <property name="text">
+    <string>Reset to Original</string>
    </property>
   </action>
  </widget>

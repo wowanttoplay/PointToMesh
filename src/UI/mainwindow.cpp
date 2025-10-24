@@ -42,10 +42,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
     connect(m_controller, &PointCloudController::pointCloudUpdated, m_renderView, &RenderView::setPointCloud);
     connect(m_controller, &PointCloudController::meshUpdated, m_renderView, &RenderView::setMesh);
 
+    // Ensure reset action exists; disable until a file is imported
+    if (auto reset = findChild<QAction*>("actionResetPointCloud")) reset->setEnabled(false);
+
     // Menu actions
     connect(ui->actionImport, &QAction::triggered, this, [this]{
         const QString path = QFileDialog::getOpenFileName(this, tr("Open point cloud"), QString(), tr("Point clouds (*.xyz *.ply *.off *.pts);;All Files (*.*)"));
-        if (!path.isEmpty()) m_controller->importFromFile(path);
+        if (!path.isEmpty()) {
+            m_controller->importFromFile(path);
+            if (auto reset = findChild<QAction*>("actionResetPointCloud")) reset->setEnabled(true);
+        }
     });
 
     connect(ui->actionExport, &QAction::triggered, this, [this]{
@@ -57,6 +63,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
     // When reconstruction actions are triggered, open a persistent parameter dialog for the selected method.
     ConnectReconstructions();
     ConnectNormalEstimations();
+
+    // Wire reset action to controller
+    if (auto reset = findChild<QAction*>("actionResetPointCloud")) {
+        connect(reset, &QAction::triggered, this, [this]{ m_controller->resetToOriginal(); });
+    }
 
     // Create View Settings dock before restoring window state, so visibility/layout can be restored
     ConnectViewSettings();

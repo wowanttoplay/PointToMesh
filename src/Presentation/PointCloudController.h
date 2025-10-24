@@ -20,6 +20,9 @@ public:
     // Trigger normal estimation with a selected method
     void runNormalEstimation(NormalEstimationMethod method);
 
+    // Re-import the last loaded point cloud from disk. If none, emits a log message.
+    void resetToOriginal();
+
 public slots:
     void importFromFile(const QString& path);
     void exportMesh(const QString& path, bool withNormals);
@@ -43,4 +46,5 @@ private slots:
 private:
     QThread m_thread;
     ProcessingWorker* m_worker {nullptr};
+    QString m_lastImportPath; // last successfully requested import path
 };

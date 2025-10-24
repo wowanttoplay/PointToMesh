@@ -38,7 +38,18 @@ PointCloudController::~PointCloudController() {
 }
 
 void PointCloudController::importFromFile(const QString& path) {
+    if (!path.isEmpty()) m_lastImportPath = path;
     emit workerImport(path);
+}
+
+void PointCloudController::resetToOriginal() {
+    if (m_lastImportPath.isEmpty()) {
+        emit logMessage(QStringLiteral("No previously imported point cloud to reset."));
+        return;
+    }
+    // Re-import the same file path; processing is in worker, so no duplicate in controller memory
+    emit logMessage(QStringLiteral("Resetting point cloud to original data: ") + m_lastImportPath);
+    emit workerImport(m_lastImportPath);
 }
 
 void PointCloudController::runReconstructionWith(MeshGenerationMethod method, std::unique_ptr<BaseInputParameter> params) {
