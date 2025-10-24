@@ -40,7 +40,6 @@ private:
     bool estimateNormalsUniformVolumeCentroid();
     bool estimateNormalsVCM();
 
-    PointCloud m_originalPointCloud;
     PointCloud m_pointCloud;
     Mesh m_mesh;
 };
