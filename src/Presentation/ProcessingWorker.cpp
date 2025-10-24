@@ -94,7 +94,7 @@ void ProcessingWorker::reconstructWithParams(MeshGenerationMethod method, BaseIn
 
     if (method == MeshGenerationMethod::POISSON_RECONSTRUCTION && !m_proc->hasNormals()) {
         emit logMessage(QStringLiteral("Estimating normals (required for Poisson)..."));
-        if (!m_proc->estimateNormals(NormalEstimationMethod::VCM_ESTIMATION)) {
+        if (!m_proc->estimateNormals(NormalEstimationMethod::JET_ESTIMATION)) {
             emit logMessage(QStringLiteral("Normal estimation failed."));
             return;
         }
