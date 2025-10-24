@@ -31,11 +31,12 @@ CGALPointCloudProcessor::CGALPointCloudProcessor() = default;
 CGALPointCloudProcessor::~CGALPointCloudProcessor() = default;
 
 bool CGALPointCloudProcessor::loadPointCloud(const std::string &filePath) {
+    m_originalPointCloud.clear();
     m_pointCloud.clear();
     m_mesh.clear();
 
     // Read points and normals. CGAL::read_points can handle files with 3 (points) or 6 (points+normals) columns.
-    if (!CGAL::IO::read_points(filePath, std::back_inserter(m_pointCloud),
+    if (!CGAL::IO::read_points(filePath, std::back_inserter(m_originalPointCloud),
                                CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>())
                                    .normal_map(CGAL::Second_of_pair_property_map<PointWithNormal>()))) {
         std::cerr << "Error: Cannot read points from " << filePath << std::endl;
@@ -44,11 +45,12 @@ bool CGALPointCloudProcessor::loadPointCloud(const std::string &filePath) {
 
     // If no normals were loaded, ensure the vector part of the pair is cleared to NULL_VECTOR
     if (!hasNormals()) {
-        for(auto& p : m_pointCloud) {
+        for(auto& p : m_originalPointCloud) {
             p.second = CGAL::NULL_VECTOR;
         }
     }
 
+    m_pointCloud = m_originalPointCloud;
     return !m_pointCloud.empty();
 }
 

@@ -32,11 +32,15 @@ private:
     bool processScaleSpaceWithParams(const ScaleSpaceReconstructionParameter* ss);
     bool processAdvancingFrontWithParams(const AdvancingFrontReconstructionParameter* af);
 
+    // Filtering point cloud surfaces
+
+
     // Normal estimation helpers
     bool estimateNormalsJet();
     bool estimateNormalsUniformVolumeCentroid();
     bool estimateNormalsVCM();
 
+    PointCloud m_originalPointCloud;
     PointCloud m_pointCloud;
     Mesh m_mesh;
 };
