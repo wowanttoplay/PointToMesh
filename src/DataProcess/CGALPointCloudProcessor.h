@@ -16,15 +16,25 @@ public:
     ~CGALPointCloudProcessor() override;
 
     bool loadPointCloud(const std::string& filePath) override;
-    bool estimateNormals(NormalEstimationMethod normalMethod = NormalEstimationMethod::JET_ESTIMATION) override;
+    bool estimateNormals(NormalEstimationMethod normalMethod) override;
 
     bool processToMesh(MeshGenerationMethod meshMethod, const BaseInputParameter* params) override;
-    bool exportMesh(const std::string& filePath, bool withNormals = false) override;
+    bool exportMesh(const std::string& filePath, bool withNormals) override;
     bool computeMeshNormals() override;
 
-    const PointCloud& getPointCloud() const override;
-    const Mesh& getMesh() const override;
-    bool hasNormals() const override;
+    [[nodiscard]] const PointCloud& getPointCloud() const override;
+    [[nodiscard]] const Mesh& getMesh() const override;
+    [[nodiscard]] bool hasNormals() const override;
+
+    // New point cloud utilities
+    bool downsampleVoxel(double cell_size) override;
+    bool filterAABB(double min_x, double min_y, double min_z,
+                    double max_x, double max_y, double max_z,
+                    bool keepInside) override;
+    bool filterSphere(double cx, double cy, double cz, double radius, bool keepInside) override;
+
+    // New mesh post-processing utilities
+    bool postProcessMesh(const MeshPostprocessOptions& options) override;
 
 private:
     // Processing helpers (mesh)

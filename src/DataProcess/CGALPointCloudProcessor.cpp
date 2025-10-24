@@ -1,5 +1,6 @@
 #include "CGALPointCloudProcessor.h"
 #include <iostream>
+#include <algorithm>
 
 // CGAL I/O
 #include <CGAL/IO/read_points.h>
@@ -25,6 +26,17 @@ namespace PMP = CGAL::Polygon_mesh_processing;
 #include <CGAL/Orthogonal_k_neighbor_search.h>
 
 #include "BaseInputParameter.h"
+
+// New includes for point set processing and mesh post-processing
+#include <CGAL/grid_simplify_point_set.h>
+#include <CGAL/Polygon_mesh_processing/repair.h>
+#include <CGAL/Polygon_mesh_processing/repair_degeneracies.h>
+#include <CGAL/Polygon_mesh_processing/connected_components.h>
+#include <CGAL/Polygon_mesh_processing/remesh.h>
+#include <CGAL/Polygon_mesh_processing/border.h>
+#include <CGAL/Polygon_mesh_processing/triangulate_hole.h>
+#include <CGAL/Polygon_mesh_processing/stitch_borders.h>
+#include <CGAL/Polygon_mesh_processing/smooth_mesh.h>
 
 CGALPointCloudProcessor::CGALPointCloudProcessor() = default;
 
@@ -342,5 +354,152 @@ bool CGALPointCloudProcessor::estimateNormalsVCM() {
     CGAL::mst_orient_normals(m_pointCloud, k_neighbors,
                              CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>())
                                  .normal_map(CGAL::Second_of_pair_property_map<PointWithNormal>()));
+    return true;
+}
+
+// New: point cloud utilities
+bool CGALPointCloudProcessor::downsampleVoxel(double cell_size) {
+    if (m_pointCloud.empty()) { std::cerr << "Error: No point cloud loaded." << std::endl; return false; }
+    if (!(cell_size > 0.0)) { std::cerr << "Error: cell_size must be > 0." << std::endl; return false; }
+
+    const std::size_t before = m_pointCloud.size();
+    auto end = CGAL::grid_simplify_point_set(m_pointCloud,
+                                             cell_size,
+                                             CGAL::parameters::point_map(CGAL::First_of_pair_property_map<PointWithNormal>()));
+    m_pointCloud.erase(end, m_pointCloud.end());
+
+    return m_pointCloud.size() <= before; // true even if unchanged
+}
+
+bool CGALPointCloudProcessor::filterAABB(double min_x, double min_y, double min_z,
+                                         double max_x, double max_y, double max_z,
+                                         bool keepInside) {
+    if (m_pointCloud.empty()) { std::cerr << "Error: No point cloud loaded." << std::endl; return false; }
+    if (!(min_x <= max_x && min_y <= max_y && min_z <= max_z)) {
+        std::cerr << "Error: Invalid AABB extents." << std::endl; return false;
+    }
+    auto inside = [&](const Point& p) {
+        return p.x() >= min_x && p.x() <= max_x &&
+               p.y() >= min_y && p.y() <= max_y &&
+               p.z() >= min_z && p.z() <= max_z;
+    };
+
+    const std::size_t before = m_pointCloud.size();
+    m_pointCloud.erase(std::remove_if(m_pointCloud.begin(), m_pointCloud.end(), [&](const PointWithNormal& pn){
+        const bool in = inside(pn.first);
+        return keepInside ? !in : in;
+    }), m_pointCloud.end());
+
+    return m_pointCloud.size() <= before;
+}
+
+bool CGALPointCloudProcessor::filterSphere(double cx, double cy, double cz, double radius, bool keepInside) {
+    if (m_pointCloud.empty()) { std::cerr << "Error: No point cloud loaded." << std::endl; return false; }
+    if (!(radius > 0.0)) { std::cerr << "Error: radius must be > 0." << std::endl; return false; }
+    const double r2 = radius * radius;
+
+    const std::size_t before = m_pointCloud.size();
+    m_pointCloud.erase(std::remove_if(m_pointCloud.begin(), m_pointCloud.end(), [&](const PointWithNormal& pn){
+        const auto dx = CGAL::to_double(pn.first.x()) - cx;
+        const auto dy = CGAL::to_double(pn.first.y()) - cy;
+        const auto dz = CGAL::to_double(pn.first.z()) - cz;
+        const double d2 = dx*dx + dy*dy + dz*dz;
+        const bool in = d2 <= r2;
+        return keepInside ? !in : in;
+    }), m_pointCloud.end());
+
+    return m_pointCloud.size() <= before;
+}
+
+// New: mesh post-processing
+bool CGALPointCloudProcessor::postProcessMesh(const MeshPostprocessOptions& options) {
+    if (m_mesh.is_empty()) { std::cerr << "Error: Mesh is empty." << std::endl; return false; }
+
+    // Optionally remove degenerate faces first to avoid issues downstream
+    if (options.remove_degenerate_faces) {
+        PMP::remove_degenerate_faces(m_mesh);
+    }
+
+    // Stitch borders (can help before hole filling and remeshing)
+    if (options.stitch_borders) {
+        PMP::stitch_borders(m_mesh);
+    }
+
+    // Keep only the largest (or top-N) connected components
+    if (options.keep_largest_components > 0) {
+        std::size_t nb_cc = PMP::connected_components(m_mesh, m_mesh.add_property_map<Mesh::Face_index, std::size_t>("f:CC", 0).first);
+        (void)nb_cc; // not used further
+        if (options.keep_largest_components == 1) {
+            PMP::keep_largest_connected_components(m_mesh, 1);
+        } else {
+            PMP::keep_largest_connected_components(m_mesh, static_cast<std::size_t>(options.keep_largest_components));
+        }
+    }
+
+    // Remove isolated vertices after possible face removals
+    if (options.remove_isolated_vertices) {
+        PMP::remove_isolated_vertices(m_mesh);
+    }
+
+    // Fill small holes
+    if (options.fill_holes_max_cycle_edges > 0) {
+        // Iterate over a snapshot of border halfedges by scanning all halfedges
+        std::vector<Mesh::Halfedge_index> borders;
+        borders.reserve(num_halfedges(m_mesh));
+        for (Mesh::Halfedge_index h : halfedges(m_mesh)) {
+            if (CGAL::is_border(h, m_mesh)) borders.push_back(h);
+        }
+        for (Mesh::Halfedge_index h : borders) {
+            if (!CGAL::is_border(h, m_mesh)) continue; // may have been filled already
+            // Count border cycle length by walking next() around the hole
+            int count = 0;
+            Mesh::Halfedge_index cur = h;
+            const int max_check = options.fill_holes_max_cycle_edges;
+            do {
+                cur = m_mesh.next(cur);
+                ++count;
+                if (cur == Mesh::null_halfedge()) { count = max_check + 1; break; }
+            } while (cur != h && count <= max_check);
+
+            if (count <= max_check) {
+                PMP::triangulate_hole(m_mesh, h);
+            }
+        }
+    }
+
+    // Isotropic remeshing
+    if (options.remesh_iterations > 0) {
+        // Determine target edge length if not given
+        double target = options.remesh_target_edge_length;
+        if (!(target > 0.0)) {
+            // Approximate average edge length
+            double sum = 0.0; std::size_t cnt = 0;
+            for (auto e : m_mesh.edges()) {
+                const auto h = m_mesh.halfedge(e);
+                const auto& p0 = m_mesh.point(m_mesh.source(h));
+                const auto& p1 = m_mesh.point(m_mesh.target(h));
+                const double dx = CGAL::to_double(p0.x() - p1.x());
+                const double dy = CGAL::to_double(p0.y() - p1.y());
+                const double dz = CGAL::to_double(p0.z() - p1.z());
+                sum += std::sqrt(dx*dx + dy*dy + dz*dz);
+                ++cnt;
+            }
+            if (cnt > 0) target = sum / static_cast<double>(cnt);
+            if (!(target > 0.0)) target = 1.0; // safe fallback
+        }
+        PMP::isotropic_remeshing(faces(m_mesh), target, m_mesh,
+                                 PMP::parameters::number_of_iterations(options.remesh_iterations)
+                                     .protect_constraints(false));
+    }
+
+    // Smoothing
+    if (options.smooth_iterations > 0) {
+        PMP::smooth_mesh(m_mesh, PMP::parameters::number_of_iterations(options.smooth_iterations));
+    }
+
+    if (options.recompute_normals) {
+        computeMeshNormals();
+    }
+
     return true;
 }

@@ -48,6 +48,28 @@ enum class MeshGenerationMethod {
 Q_DECLARE_METATYPE(MeshGenerationMethod)
 Q_DECLARE_METATYPE(NormalEstimationMethod)
 
+// Lightweight options for mesh post-processing
+struct MeshPostprocessOptions {
+    // Connectivity cleanup
+    int keep_largest_components = 0; // 0 = no filtering; 1 = keep only the largest, N = keep top-N
+    bool remove_degenerate_faces = true;
+    bool remove_isolated_vertices = true;
+    bool stitch_borders = false; // attempt to stitch coincident borders
+
+    // Hole filling: fill only holes whose boundary cycle has <= this number of edges (0 disables)
+    int fill_holes_max_cycle_edges = 0;
+
+    // Isotropic remeshing
+    int remesh_iterations = 0; // 0 disables
+    double remesh_target_edge_length = 0.0; // <= 0 means auto from average edge length
+
+    // Smoothing (Laplacian-based)
+    int smooth_iterations = 0; // 0 disables
+
+    // Recompute vertex normals after processing
+    bool recompute_normals = true;
+};
+
 /**
  * @class PointCloudProcessor
  * @brief An abstract base class defining the interface for point cloud processing.
@@ -72,7 +94,7 @@ public:
      * @param normalMethod The algorithm to use for normal estimation.
      * @return True if normal estimation was successful, false otherwise.
      */
-    virtual bool estimateNormals(NormalEstimationMethod normalMethod = NormalEstimationMethod::JET_ESTIMATION) = 0;
+    virtual bool estimateNormals(NormalEstimationMethod normalMethod) = 0;
 
     /**
      * @brief Processes the loaded point cloud into a mesh with the given parameters.
@@ -88,25 +110,25 @@ public:
      * @param withNormals If true, export vertex normals when supported by the format.
      * @return True if exporting was successful, false otherwise.
      */
-    virtual bool exportMesh(const std::string& filePath, bool withNormals = false) = 0;
+    virtual bool exportMesh(const std::string& filePath, bool withNormals) = 0;
 
     /**
      * @brief Provides access to the internal point cloud data.
      * @return A const reference to the point cloud.
      */
-    virtual const PointCloud& getPointCloud() const = 0;
+    [[nodiscard]] virtual const PointCloud& getPointCloud() const = 0;
 
     /**
      * @brief Checks if the point cloud has associated normals.
      * @return True if normals are present, false otherwise.
      */
-    virtual bool hasNormals() const = 0;
+    [[nodiscard]] virtual bool hasNormals() const = 0;
 
     /**
      * @brief Provides access to the internal mesh data.
      * @return A const reference to the mesh.
      */
-    virtual const Mesh& getMesh() const = 0;
+    [[nodiscard]] virtual const Mesh& getMesh() const = 0;
 
     /**
      * @brief Compute and attach normals for the current mesh.
@@ -114,6 +136,50 @@ public:
      * @return True if normals were computed successfully, false otherwise.
      */
     virtual bool computeMeshNormals() = 0;
+
+    // --- New: Point cloud utilities ---
+
+    /**
+     * @brief Downsample the point cloud using a voxel grid (CGAL grid simplification).
+     * @param cell_size Size of the cubic voxel cells in the same units as the point cloud.
+     * @return True if downsampling succeeded and the point cloud was modified.
+     */
+    virtual bool downsampleVoxel(double cell_size) = 0;
+
+    /**
+     * @brief Keep or remove points based on an axis-aligned bounding box.
+     * @param min_x Minimum X of the AABB
+     * @param min_y Minimum Y of the AABB
+     * @param min_z Minimum Z of the AABB
+     * @param max_x Maximum X of the AABB
+     * @param max_y Maximum Y of the AABB
+     * @param max_z Maximum Z of the AABB
+     * @param keepInside If true, keep points inside the AABB; otherwise remove them
+     * @return True if filtering succeeded and the point cloud was modified (or unchanged if no points match)
+     */
+    virtual bool filterAABB(double min_x, double min_y, double min_z,
+                            double max_x, double max_y, double max_z,
+                            bool keepInside) = 0;
+
+    /**
+     * @brief Keep or remove points based on a sphere.
+     * @param cx Center X
+     * @param cy Center Y
+     * @param cz Center Z
+     * @param radius Sphere radius (> 0)
+     * @param keepInside If true, keep points inside the sphere; otherwise remove them
+     * @return True if filtering succeeded and the point cloud was modified (or unchanged if no points match)
+     */
+    virtual bool filterSphere(double cx, double cy, double cz, double radius, bool keepInside) = 0;
+
+    // --- New: Mesh post-processing ---
+
+    /**
+     * @brief Post-process the current mesh with a set of common cleanup/smoothing/remeshing operations.
+     * @param options Options controlling which operations to run and their parameters.
+     * @return True if the mesh exists and the operations completed.
+     */
+    virtual bool postProcessMesh(const MeshPostprocessOptions& options) = 0;
 };
 
 #endif //POINTTOMESH_POINTCLOUDPROCESSOR_H
