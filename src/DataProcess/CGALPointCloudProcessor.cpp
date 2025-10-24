@@ -371,10 +371,15 @@ bool CGALPointCloudProcessor::downsampleVoxel(double cell_size) {
     return m_pointCloud.size() <= before; // true even if unchanged
 }
 
-bool CGALPointCloudProcessor::filterAABB(double min_x, double min_y, double min_z,
-                                         double max_x, double max_y, double max_z,
-                                         bool keepInside) {
+bool CGALPointCloudProcessor::filterAABB(const BaseInputParameter* params) {
     if (m_pointCloud.empty()) { std::cerr << "Error: No point cloud loaded." << std::endl; return false; }
+    const auto* aabb = params ? dynamic_cast<const AABBFilterParameter*>(params) : nullptr;
+    if (!aabb) { std::cerr << "Error: AABBFilterParameter expected." << std::endl; return false; }
+
+    const double min_x = aabb->min_x, min_y = aabb->min_y, min_z = aabb->min_z;
+    const double max_x = aabb->max_x, max_y = aabb->max_y, max_z = aabb->max_z;
+    const bool keepInside = aabb->keepInside;
+
     if (!(min_x <= max_x && min_y <= max_y && min_z <= max_z)) {
         std::cerr << "Error: Invalid AABB extents." << std::endl; return false;
     }
@@ -393,8 +398,14 @@ bool CGALPointCloudProcessor::filterAABB(double min_x, double min_y, double min_
     return m_pointCloud.size() <= before;
 }
 
-bool CGALPointCloudProcessor::filterSphere(double cx, double cy, double cz, double radius, bool keepInside) {
+bool CGALPointCloudProcessor::filterSphere(const BaseInputParameter* params) {
     if (m_pointCloud.empty()) { std::cerr << "Error: No point cloud loaded." << std::endl; return false; }
+    const auto* s = params ? dynamic_cast<const SphereFilterParameter*>(params) : nullptr;
+    if (!s) { std::cerr << "Error: SphereFilterParameter expected." << std::endl; return false; }
+
+    const double cx = s->cx, cy = s->cy, cz = s->cz, radius = s->radius;
+    const bool keepInside = s->keepInside;
+
     if (!(radius > 0.0)) { std::cerr << "Error: radius must be > 0." << std::endl; return false; }
     const double r2 = radius * radius;
 
@@ -412,37 +423,39 @@ bool CGALPointCloudProcessor::filterSphere(double cx, double cy, double cz, doub
 }
 
 // New: mesh post-processing
-bool CGALPointCloudProcessor::postProcessMesh(const MeshPostprocessOptions& options) {
+bool CGALPointCloudProcessor::postProcessMesh(const BaseInputParameter* params) {
     if (m_mesh.is_empty()) { std::cerr << "Error: Mesh is empty." << std::endl; return false; }
+    const auto* options = params ? dynamic_cast<const MeshPostprocessParameter*>(params) : nullptr;
+    if (!options) { std::cerr << "Error: MeshPostprocessParameter expected." << std::endl; return false; }
 
     // Optionally remove degenerate faces first to avoid issues downstream
-    if (options.remove_degenerate_faces) {
+    if (options->remove_degenerate_faces) {
         PMP::remove_degenerate_faces(m_mesh);
     }
 
     // Stitch borders (can help before hole filling and remeshing)
-    if (options.stitch_borders) {
+    if (options->stitch_borders) {
         PMP::stitch_borders(m_mesh);
     }
 
     // Keep only the largest (or top-N) connected components
-    if (options.keep_largest_components > 0) {
+    if (options->keep_largest_components > 0) {
         std::size_t nb_cc = PMP::connected_components(m_mesh, m_mesh.add_property_map<Mesh::Face_index, std::size_t>("f:CC", 0).first);
         (void)nb_cc; // not used further
-        if (options.keep_largest_components == 1) {
+        if (options->keep_largest_components == 1) {
             PMP::keep_largest_connected_components(m_mesh, 1);
         } else {
-            PMP::keep_largest_connected_components(m_mesh, static_cast<std::size_t>(options.keep_largest_components));
+            PMP::keep_largest_connected_components(m_mesh, static_cast<std::size_t>(options->keep_largest_components));
         }
     }
 
     // Remove isolated vertices after possible face removals
-    if (options.remove_isolated_vertices) {
+    if (options->remove_isolated_vertices) {
         PMP::remove_isolated_vertices(m_mesh);
     }
 
     // Fill small holes
-    if (options.fill_holes_max_cycle_edges > 0) {
+    if (options->fill_holes_max_cycle_edges > 0) {
         // Iterate over a snapshot of border halfedges by scanning all halfedges
         std::vector<Mesh::Halfedge_index> borders;
         borders.reserve(num_halfedges(m_mesh));
@@ -454,7 +467,7 @@ bool CGALPointCloudProcessor::postProcessMesh(const MeshPostprocessOptions& opti
             // Count border cycle length by walking next() around the hole
             int count = 0;
             Mesh::Halfedge_index cur = h;
-            const int max_check = options.fill_holes_max_cycle_edges;
+            const int max_check = options->fill_holes_max_cycle_edges;
             do {
                 cur = m_mesh.next(cur);
                 ++count;
@@ -468,9 +481,9 @@ bool CGALPointCloudProcessor::postProcessMesh(const MeshPostprocessOptions& opti
     }
 
     // Isotropic remeshing
-    if (options.remesh_iterations > 0) {
+    if (options->remesh_iterations > 0) {
         // Determine target edge length if not given
-        double target = options.remesh_target_edge_length;
+        double target = options->remesh_target_edge_length;
         if (!(target > 0.0)) {
             // Approximate average edge length
             double sum = 0.0; std::size_t cnt = 0;
@@ -488,16 +501,16 @@ bool CGALPointCloudProcessor::postProcessMesh(const MeshPostprocessOptions& opti
             if (!(target > 0.0)) target = 1.0; // safe fallback
         }
         PMP::isotropic_remeshing(faces(m_mesh), target, m_mesh,
-                                 PMP::parameters::number_of_iterations(options.remesh_iterations)
+                                 PMP::parameters::number_of_iterations(options->remesh_iterations)
                                      .protect_constraints(false));
     }
 
     // Smoothing
-    if (options.smooth_iterations > 0) {
-        PMP::smooth_mesh(m_mesh, PMP::parameters::number_of_iterations(options.smooth_iterations));
+    if (options->smooth_iterations > 0) {
+        PMP::smooth_mesh(m_mesh, PMP::parameters::number_of_iterations(options->smooth_iterations));
     }
 
-    if (options.recompute_normals) {
+    if (options->recompute_normals) {
         computeMeshNormals();
     }
 

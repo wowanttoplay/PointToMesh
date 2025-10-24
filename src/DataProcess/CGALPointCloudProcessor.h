@@ -28,13 +28,11 @@ public:
 
     // New point cloud utilities
     bool downsampleVoxel(double cell_size) override;
-    bool filterAABB(double min_x, double min_y, double min_z,
-                    double max_x, double max_y, double max_z,
-                    bool keepInside) override;
-    bool filterSphere(double cx, double cy, double cz, double radius, bool keepInside) override;
+    bool filterAABB(const BaseInputParameter* params) override;
+    bool filterSphere(const BaseInputParameter* params) override;
 
     // New mesh post-processing utilities
-    bool postProcessMesh(const MeshPostprocessOptions& options) override;
+    bool postProcessMesh(const BaseInputParameter* params) override;
 
 private:
     // Processing helpers (mesh)

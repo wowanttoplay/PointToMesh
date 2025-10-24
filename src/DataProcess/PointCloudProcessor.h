@@ -48,28 +48,6 @@ enum class MeshGenerationMethod {
 Q_DECLARE_METATYPE(MeshGenerationMethod)
 Q_DECLARE_METATYPE(NormalEstimationMethod)
 
-// Lightweight options for mesh post-processing
-struct MeshPostprocessOptions {
-    // Connectivity cleanup
-    int keep_largest_components = 0; // 0 = no filtering; 1 = keep only the largest, N = keep top-N
-    bool remove_degenerate_faces = true;
-    bool remove_isolated_vertices = true;
-    bool stitch_borders = false; // attempt to stitch coincident borders
-
-    // Hole filling: fill only holes whose boundary cycle has <= this number of edges (0 disables)
-    int fill_holes_max_cycle_edges = 0;
-
-    // Isotropic remeshing
-    int remesh_iterations = 0; // 0 disables
-    double remesh_target_edge_length = 0.0; // <= 0 means auto from average edge length
-
-    // Smoothing (Laplacian-based)
-    int smooth_iterations = 0; // 0 disables
-
-    // Recompute vertex normals after processing
-    bool recompute_normals = true;
-};
-
 /**
  * @class PointCloudProcessor
  * @brief An abstract base class defining the interface for point cloud processing.
@@ -148,38 +126,23 @@ public:
 
     /**
      * @brief Keep or remove points based on an axis-aligned bounding box.
-     * @param min_x Minimum X of the AABB
-     * @param min_y Minimum Y of the AABB
-     * @param min_z Minimum Z of the AABB
-     * @param max_x Maximum X of the AABB
-     * @param max_y Maximum Y of the AABB
-     * @param max_z Maximum Z of the AABB
-     * @param keepInside If true, keep points inside the AABB; otherwise remove them
-     * @return True if filtering succeeded and the point cloud was modified (or unchanged if no points match)
+     *        Parameters are provided via AABBFilterParameter cast from BaseInputParameter.
      */
-    virtual bool filterAABB(double min_x, double min_y, double min_z,
-                            double max_x, double max_y, double max_z,
-                            bool keepInside) = 0;
+    virtual bool filterAABB(const BaseInputParameter* params) = 0;
 
     /**
      * @brief Keep or remove points based on a sphere.
-     * @param cx Center X
-     * @param cy Center Y
-     * @param cz Center Z
-     * @param radius Sphere radius (> 0)
-     * @param keepInside If true, keep points inside the sphere; otherwise remove them
-     * @return True if filtering succeeded and the point cloud was modified (or unchanged if no points match)
+     *        Parameters are provided via SphereFilterParameter cast from BaseInputParameter.
      */
-    virtual bool filterSphere(double cx, double cy, double cz, double radius, bool keepInside) = 0;
+    virtual bool filterSphere(const BaseInputParameter* params) = 0;
 
     // --- New: Mesh post-processing ---
 
     /**
      * @brief Post-process the current mesh with a set of common cleanup/smoothing/remeshing operations.
-     * @param options Options controlling which operations to run and their parameters.
-     * @return True if the mesh exists and the operations completed.
+     *        Parameters are provided via MeshPostprocessParameter cast from BaseInputParameter.
      */
-    virtual bool postProcessMesh(const MeshPostprocessOptions& options) = 0;
+    virtual bool postProcessMesh(const BaseInputParameter* params) = 0;
 };
 
 #endif //POINTTOMESH_POINTCLOUDPROCESSOR_H
