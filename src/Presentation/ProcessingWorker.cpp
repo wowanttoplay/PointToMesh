@@ -151,11 +151,16 @@ void ProcessingWorker::postProcessMeshWith(BaseInputParameter* params) {
 void ProcessingWorker::downsampleVoxelWith(BaseInputParameter* params) {
     std::unique_ptr<BaseInputParameter> guard(params);
     if (!m_proc) { emit logMessage("Processor not initialized."); return; }
+    const auto before = static_cast<long long>(m_proc->getPointCloud().size());
     emit logMessage(QStringLiteral("Downsampling point cloud (voxel grid)..."));
     if (!m_proc->downsampleVoxel(guard.get())) {
         emit logMessage(QStringLiteral("Voxel downsample failed."));
         return;
     }
+    const auto after = static_cast<long long>(m_proc->getPointCloud().size());
+    const auto delta = after - before;
+    emit logMessage(QStringLiteral("Points: ") + QString::number(before) + QStringLiteral(" -> ") + QString::number(after) +
+                    QStringLiteral(" (Δ ") + QString::number(delta) + QStringLiteral(")"));
     emit pointCloudReady(toPointCloudModel(m_proc->getPointCloud()));
     emit logMessage(QStringLiteral("Voxel downsample finished."));
 }
@@ -163,11 +168,16 @@ void ProcessingWorker::downsampleVoxelWith(BaseInputParameter* params) {
 void ProcessingWorker::filterPointCloudAABB(BaseInputParameter* params) {
     std::unique_ptr<BaseInputParameter> guard(params);
     if (!m_proc) { emit logMessage("Processor not initialized."); return; }
+    const auto before = static_cast<long long>(m_proc->getPointCloud().size());
     emit logMessage(QStringLiteral("Filtering point cloud by AABB..."));
     if (!m_proc->filterAABB(guard.get())) {
         emit logMessage(QStringLiteral("AABB filter failed."));
         return;
     }
+    const auto after = static_cast<long long>(m_proc->getPointCloud().size());
+    const auto delta = after - before;
+    emit logMessage(QStringLiteral("Points: ") + QString::number(before) + QStringLiteral(" -> ") + QString::number(after) +
+                    QStringLiteral(" (Δ ") + QString::number(delta) + QStringLiteral(")"));
     emit pointCloudReady(toPointCloudModel(m_proc->getPointCloud()));
     emit logMessage(QStringLiteral("AABB filter finished."));
 }
@@ -175,11 +185,16 @@ void ProcessingWorker::filterPointCloudAABB(BaseInputParameter* params) {
 void ProcessingWorker::filterPointCloudSphere(BaseInputParameter* params) {
     std::unique_ptr<BaseInputParameter> guard(params);
     if (!m_proc) { emit logMessage("Processor not initialized."); return; }
+    const auto before = static_cast<long long>(m_proc->getPointCloud().size());
     emit logMessage(QStringLiteral("Filtering point cloud by sphere..."));
     if (!m_proc->filterSphere(guard.get())) {
         emit logMessage(QStringLiteral("Sphere filter failed."));
         return;
     }
+    const auto after = static_cast<long long>(m_proc->getPointCloud().size());
+    const auto delta = after - before;
+    emit logMessage(QStringLiteral("Points: ") + QString::number(before) + QStringLiteral(" -> ") + QString::number(after) +
+                    QStringLiteral(" (Δ ") + QString::number(delta) + QStringLiteral(")"));
     emit pointCloudReady(toPointCloudModel(m_proc->getPointCloud()));
     emit logMessage(QStringLiteral("Sphere filter finished."));
 }
@@ -187,11 +202,16 @@ void ProcessingWorker::filterPointCloudSphere(BaseInputParameter* params) {
 void ProcessingWorker::filterUniformVolumeSurface(BaseInputParameter* params) {
     std::unique_ptr<BaseInputParameter> guard(params);
     if (!m_proc) { emit logMessage("Processor not initialized."); return; }
+    const auto before = static_cast<long long>(m_proc->getPointCloud().size());
     emit logMessage(QStringLiteral("Filtering surface points from uniform volume..."));
     if (!m_proc->filterSurfaceFromUniformVolume(guard.get())) {
         emit logMessage(QStringLiteral("Uniform-volume surface filter failed."));
         return;
     }
+    const auto after = static_cast<long long>(m_proc->getPointCloud().size());
+    const auto delta = after - before;
+    emit logMessage(QStringLiteral("Points: ") + QString::number(before) + QStringLiteral(" -> ") + QString::number(after) +
+                    QStringLiteral(" (Δ ") + QString::number(delta) + QStringLiteral(")"));
     emit pointCloudReady(toPointCloudModel(m_proc->getPointCloud()));
     emit logMessage(QStringLiteral("Uniform-volume surface filter finished."));
 }
