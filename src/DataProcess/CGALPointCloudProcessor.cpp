@@ -33,10 +33,9 @@ namespace PMP = CGAL::Polygon_mesh_processing;
 #include <CGAL/Polygon_mesh_processing/repair_degeneracies.h>
 #include <CGAL/Polygon_mesh_processing/connected_components.h>
 #include <CGAL/Polygon_mesh_processing/remesh.h>
-#include <CGAL/Polygon_mesh_processing/border.h>
 #include <CGAL/Polygon_mesh_processing/triangulate_hole.h>
 #include <CGAL/Polygon_mesh_processing/stitch_borders.h>
-#include <CGAL/Polygon_mesh_processing/smooth_mesh.h>
+#include <CGAL/Polygon_mesh_processing/angle_and_area_smoothing.h>
 
 CGALPointCloudProcessor::CGALPointCloudProcessor() = default;
 
@@ -507,7 +506,7 @@ bool CGALPointCloudProcessor::postProcessMesh(const BaseInputParameter* params) 
 
     // Smoothing
     if (options->smooth_iterations > 0) {
-        PMP::smooth_mesh(m_mesh, PMP::parameters::number_of_iterations(options->smooth_iterations));
+        PMP::angle_and_area_smoothing(m_mesh, PMP::parameters::number_of_iterations(options->smooth_iterations));
     }
 
     if (options->recompute_normals) {
