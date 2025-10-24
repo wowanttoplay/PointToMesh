@@ -32,6 +32,7 @@ class MainWindow : public QMainWindow {
 
 public:
     void ConnectReconstructions();
+    void ConnectNormalEstimations();
 
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;

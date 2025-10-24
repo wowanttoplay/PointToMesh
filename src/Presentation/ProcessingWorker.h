@@ -17,6 +17,7 @@ public slots:
     // Parameterized reconstruction; takes ownership of params and deletes it in worker thread
     void reconstructWithParams(MeshGenerationMethod method, BaseInputParameter* params);
     void exportMeshTo(const QString& filePath, bool withNormals);
+    void estimateNormals(NormalEstimationMethod method);
 
 signals:
     void logMessage(const QString& message);

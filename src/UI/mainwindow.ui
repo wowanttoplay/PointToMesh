@@ -34,6 +34,15 @@
     <property name="title">
      <string>Tools</string>
     </property>
+    <widget class="QMenu" name="menuNormalEstimation">
+     <property name="title">
+      <string>Normal Estimation</string>
+     </property>
+     <addaction name="actionEstimateNormalsJet"/>
+     <addaction name="actionEstimateNormalsUniformCentroid"/>
+     <addaction name="actionEstimateNormalsVCM"/>
+    </widget>
+    <addaction name="menuNormalEstimation"/>
     <addaction name="actionReconstructPoisson"/>
     <addaction name="actionReconstructScaleSpace"/>
     <addaction name="actionReconstructAdvancingFront"/>
@@ -74,6 +83,21 @@
   <action name="actionReconstructAdvancingFront">
    <property name="text">
     <string>Reconstruct (Advancing Front)</string>
+   </property>
+  </action>
+  <action name="actionEstimateNormalsJet">
+   <property name="text">
+    <string>Estimate Normals (Jet)</string>
+   </property>
+  </action>
+  <action name="actionEstimateNormalsUniformCentroid">
+   <property name="text">
+    <string>Estimate Normals (Uniform Centroid)</string>
+   </property>
+  </action>
+  <action name="actionEstimateNormalsVCM">
+   <property name="text">
+    <string>Estimate Normals (VCM)</string>
    </property>
   </action>
   <action name="actionViewSettings">

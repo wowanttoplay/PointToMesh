@@ -17,6 +17,8 @@ public:
 
     // Overload that accepts a parameter object; ownership will be transferred to the worker thread
     void runReconstructionWith(MeshGenerationMethod method, std::unique_ptr<BaseInputParameter> params);
+    // Trigger normal estimation with a selected method
+    void runNormalEstimation(NormalEstimationMethod method);
 
 public slots:
     void importFromFile(const QString& path);
@@ -31,6 +33,7 @@ signals:
     void workerImport(const QString& path);
     void workerReconstructWithParams(MeshGenerationMethod method, BaseInputParameter* params); // takes ownership
     void workerExport(const QString& path, bool withNormals);
+    void workerEstimateNormals(NormalEstimationMethod method);
 
 private slots:
     void onWorkerLog(const QString& m) { emit logMessage(m); }

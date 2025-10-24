@@ -46,6 +46,7 @@ enum class MeshGenerationMethod {
 
 // Make enums available to Qt meta-object system for queued connections
 Q_DECLARE_METATYPE(MeshGenerationMethod)
+Q_DECLARE_METATYPE(NormalEstimationMethod)
 
 /**
  * @class PointCloudProcessor

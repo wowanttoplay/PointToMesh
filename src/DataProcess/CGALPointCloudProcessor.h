@@ -27,9 +27,15 @@ public:
     bool hasNormals() const override;
 
 private:
+    // Processing helpers (mesh)
     bool processPoissonWithParams(const PoissonReconstructionParameter* poisson);
     bool processScaleSpaceWithParams(const ScaleSpaceReconstructionParameter* ss);
     bool processAdvancingFrontWithParams(const AdvancingFrontReconstructionParameter* af);
+
+    // Normal estimation helpers
+    bool estimateNormalsJet();
+    bool estimateNormalsUniformVolumeCentroid();
+    bool estimateNormalsVCM();
 
     PointCloud m_pointCloud;
     Mesh m_mesh;

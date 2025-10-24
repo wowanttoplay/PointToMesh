@@ -56,6 +56,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
     // Optional reconstruct action if present
     // When reconstruction actions are triggered, open a persistent parameter dialog for the selected method.
     ConnectReconstructions();
+    ConnectNormalEstimations();
 
     // Create View Settings dock before restoring window state, so visibility/layout can be restored
     ConnectViewSettings();
@@ -170,5 +171,17 @@ void MainWindow::ConnectReconstructions() {
             m_advancingFrontParamDialog->raise();
             m_advancingFrontParamDialog->activateWindow();
         });
+    }
+}
+
+void MainWindow::ConnectNormalEstimations() {
+    if (auto a = findChild<QAction*>("actionEstimateNormalsJet")) {
+        connect(a, &QAction::triggered, this, [this]{ if (m_controller) m_controller->runNormalEstimation(NormalEstimationMethod::JET_ESTIMATION); });
+    }
+    if (auto a = findChild<QAction*>("actionEstimateNormalsUniformCentroid")) {
+        connect(a, &QAction::triggered, this, [this]{ if (m_controller) m_controller->runNormalEstimation(NormalEstimationMethod::UNIFORM_VOLUME_CENTROID); });
+    }
+    if (auto a = findChild<QAction*>("actionEstimateNormalsVCM")) {
+        connect(a, &QAction::triggered, this, [this]{ if (m_controller) m_controller->runNormalEstimation(NormalEstimationMethod::VCM_ESTIMATION); });
     }
 }

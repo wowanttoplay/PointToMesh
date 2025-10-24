@@ -57,7 +57,7 @@ void ProcessingWorker::reconstructWithParams(MeshGenerationMethod method, BaseIn
 
     if (method == MeshGenerationMethod::POISSON_RECONSTRUCTION && !m_proc->hasNormals()) {
         emit logMessage(QStringLiteral("Estimating normals (required for Poisson)..."));
-        if (!m_proc->estimateNormals()) {
+        if (!m_proc->estimateNormals(NormalEstimationMethod::VCM_ESTIMATION)) {
             emit logMessage(QStringLiteral("Normal estimation failed."));
             return;
         }
@@ -105,4 +105,38 @@ void ProcessingWorker::exportMeshTo(const QString& filePath, bool withNormals) {
         return;
     }
     emit logMessage(QStringLiteral("Exported mesh to: ") + filePath);
+}
+
+void ProcessingWorker::estimateNormals(NormalEstimationMethod method) {
+    if (!m_proc) { emit logMessage("Processor not initialized."); return; }
+
+    const auto methodName = [method]() -> QString {
+        switch (method) {
+            case NormalEstimationMethod::JET_ESTIMATION: return QStringLiteral("Jet estimation");
+            case NormalEstimationMethod::UNIFORM_VOLUME_CENTROID: return QStringLiteral("Uniform centroid estimation");
+            case NormalEstimationMethod::VCM_ESTIMATION: return QStringLiteral("VCM estimation");
+            default: return QStringLiteral("Unknown normal estimation");
+        }
+    }();
+
+    emit logMessage(QStringLiteral("Estimating normals using ") + methodName + QStringLiteral("..."));
+    if (!m_proc->estimateNormals(method)) {
+        emit logMessage(QStringLiteral("Normal estimation failed."));
+        return;
+    }
+
+    const auto& pc = m_proc->getPointCloud();
+    auto model = std::make_shared<PointCloudModel>();
+    model->points.reserve(pc.size());
+    model->normals.reserve(pc.size());
+    for (const auto& pn : pc) {
+        const auto& p = pn.first;  const auto& n = pn.second;
+        model->points.emplace_back(static_cast<float>(p.x()), static_cast<float>(p.y()), static_cast<float>(p.z()));
+        if (n != CGAL::NULL_VECTOR)
+            model->normals.emplace_back(static_cast<float>(n.x()), static_cast<float>(n.y()), static_cast<float>(n.z()));
+        else
+            model->normals.emplace_back(0.0f, 0.0f, 0.0f);
+    }
+    emit pointCloudReady(model);
+    emit logMessage(QStringLiteral("Normals updated."));
 }
