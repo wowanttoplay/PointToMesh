@@ -28,4 +28,8 @@ signals:
 
 private:
     std::unique_ptr<PointCloudProcessor> m_proc;
+
+    // Helpers to reduce duplication
+    std::shared_ptr<PointCloudModel> toPointCloudModel(const PointCloud& pc) const;
+    std::shared_ptr<MeshModel> toMeshModel(const Mesh& mesh) const;
 };
