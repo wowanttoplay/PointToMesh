@@ -506,7 +506,12 @@ bool CGALPointCloudProcessor::postProcessMesh(const BaseInputParameter* params) 
 
     // Smoothing
     if (options->smooth_iterations > 0) {
-        PMP::angle_and_area_smoothing(m_mesh, PMP::parameters::number_of_iterations(options->smooth_iterations));
+        PMP::angle_and_area_smoothing(
+            m_mesh,
+            PMP::parameters::number_of_iterations(options->smooth_iterations)
+                .use_angle_smoothing(true)
+                .use_area_smoothing(true)
+        );
     }
 
     if (options->recompute_normals) {
