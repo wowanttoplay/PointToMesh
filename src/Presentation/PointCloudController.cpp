@@ -23,6 +23,7 @@ PointCloudController::PointCloudController(std::unique_ptr<PointCloudProcessor> 
     connect(this, &PointCloudController::workerReconstructWithParams, m_worker, &ProcessingWorker::reconstructWithParams, Qt::QueuedConnection);
     connect(this, &PointCloudController::workerExport,      m_worker, &ProcessingWorker::exportMeshTo,      Qt::QueuedConnection);
     connect(this, &PointCloudController::workerEstimateNormals, m_worker, &ProcessingWorker::estimateNormals, Qt::QueuedConnection);
+    connect(this, &PointCloudController::workerPostProcessMesh, m_worker, &ProcessingWorker::postProcessMeshWith, Qt::QueuedConnection);
 
     // Downstream wiring: worker -> controller
     connect(m_worker, &ProcessingWorker::logMessage,      this, &PointCloudController::onWorkerLog,        Qt::QueuedConnection);
@@ -64,4 +65,9 @@ void PointCloudController::runNormalEstimation(NormalEstimationMethod method) {
 
 void PointCloudController::exportMesh(const QString& path, bool withNormals) {
     emit workerExport(path, withNormals);
+}
+
+void PointCloudController::runPostProcessMesh(std::unique_ptr<BaseInputParameter> params) {
+    BaseInputParameter* raw = params.release();
+    emit workerPostProcessMesh(raw);
 }

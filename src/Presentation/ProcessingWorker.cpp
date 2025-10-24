@@ -140,3 +140,41 @@ void ProcessingWorker::estimateNormals(NormalEstimationMethod method) {
     emit pointCloudReady(model);
     emit logMessage(QStringLiteral("Normals updated."));
 }
+
+void ProcessingWorker::postProcessMeshWith(BaseInputParameter* params) {
+    // Takes ownership
+    std::unique_ptr<BaseInputParameter> guard(params);
+    if (!m_proc) { emit logMessage("Processor not initialized."); return; }
+
+    emit logMessage(QStringLiteral("Post-processing mesh..."));
+    if (!m_proc->postProcessMesh(guard.get())) {
+        emit logMessage(QStringLiteral("Mesh post-process failed."));
+        return;
+    }
+
+    const auto& mesh = m_proc->getMesh();
+    auto model = std::make_shared<MeshModel>();
+    const auto nv = static_cast<std::size_t>(num_vertices(mesh));
+    model->vertices.reserve(nv);
+
+    std::vector<std::uint32_t> vmap(nv);
+    std::uint32_t idx = 0;
+    for (auto v : mesh.vertices()) {
+        const auto& p = mesh.point(v);
+        model->vertices.emplace_back(static_cast<float>(p.x()), static_cast<float>(p.y()), static_cast<float>(p.z()));
+        vmap[static_cast<std::size_t>(v.idx())] = idx++;
+    }
+
+    for (auto f : mesh.faces()) {
+        std::vector<std::uint32_t> faceIdx;
+        for (auto v : CGAL::vertices_around_face(mesh.halfedge(f), mesh)) {
+            faceIdx.push_back(vmap[static_cast<std::size_t>(v.idx())]);
+        }
+        if (faceIdx.size() == 3) {
+            model->indices.insert(model->indices.end(), { faceIdx[0], faceIdx[1], faceIdx[2] });
+        }
+    }
+
+    emit meshReady(model);
+    emit logMessage(QStringLiteral("Mesh post-process finished."));
+}

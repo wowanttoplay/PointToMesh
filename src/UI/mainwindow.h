@@ -33,6 +33,7 @@ class MainWindow : public QMainWindow {
 public:
     void ConnectReconstructions();
     void ConnectNormalEstimations();
+    void ConnectMeshTools();
 
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
@@ -49,6 +50,8 @@ private:
     QPointer<ParameterDialog> m_poissonParamDialog {nullptr};
     QPointer<ParameterDialog> m_scaleSpaceParamDialog {nullptr};
     QPointer<ParameterDialog> m_advancingFrontParamDialog {nullptr};
+    // New: mesh post-process parameter dialog
+    QPointer<ParameterDialog> m_postProcessParamDialog {nullptr};
 private:
     void ConnectViewSettings();
     void ConnectSplitPlaneControls();

@@ -19,6 +19,8 @@ public:
     void runReconstructionWith(MeshGenerationMethod method, std::unique_ptr<BaseInputParameter> params);
     // Trigger normal estimation with a selected method
     void runNormalEstimation(NormalEstimationMethod method);
+    // New: post-process mesh with parameters
+    void runPostProcessMesh(std::unique_ptr<BaseInputParameter> params);
 
     // Re-import the last loaded point cloud from disk. If none, emits a log message.
     void resetToOriginal();
@@ -37,6 +39,7 @@ signals:
     void workerReconstructWithParams(MeshGenerationMethod method, BaseInputParameter* params); // takes ownership
     void workerExport(const QString& path, bool withNormals);
     void workerEstimateNormals(NormalEstimationMethod method);
+    void workerPostProcessMesh(BaseInputParameter* params);
 
 private slots:
     void onWorkerLog(const QString& m) { emit logMessage(m); }

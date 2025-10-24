@@ -51,8 +51,16 @@
      </property>
      <addaction name="actionResetPointCloud"/>
     </widget>
+    <!-- New Mesh submenu for post-processing -->
+    <widget class="QMenu" name="menuMesh">
+     <property name="title">
+      <string>Mesh</string>
+     </property>
+     <addaction name="actionPostProcessMesh"/>
+    </widget>
     <addaction name="menuReconstruction"/>
     <addaction name="menuPointCloud"/>
+    <addaction name="menuMesh"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -134,6 +142,12 @@
   <action name="actionResetPointCloud">
    <property name="text">
     <string>Reset to Original</string>
+   </property>
+  </action>
+  <!-- New action for mesh post-processing -->
+  <action name="actionPostProcessMesh">
+   <property name="text">
+    <string>Post-process Mesh...</string>
    </property>
   </action>
  </widget>

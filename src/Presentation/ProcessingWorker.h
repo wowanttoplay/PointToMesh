@@ -18,6 +18,8 @@ public slots:
     void reconstructWithParams(MeshGenerationMethod method, BaseInputParameter* params);
     void exportMeshTo(const QString& filePath, bool withNormals);
     void estimateNormals(NormalEstimationMethod method);
+    // New: mesh post-process; takes ownership of params and deletes in worker thread
+    void postProcessMeshWith(BaseInputParameter* params);
 
 signals:
     void logMessage(const QString& message);

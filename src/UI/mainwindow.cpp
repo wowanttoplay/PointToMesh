@@ -63,6 +63,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(std::make_uniq
     // When reconstruction actions are triggered, open a persistent parameter dialog for the selected method.
     ConnectReconstructions();
     ConnectNormalEstimations();
+    ConnectMeshTools();
 
     // Wire reset action to controller
     if (auto reset = findChild<QAction*>("actionResetPointCloud")) {
@@ -194,5 +195,26 @@ void MainWindow::ConnectNormalEstimations() {
     }
     if (auto a = findChild<QAction*>("actionEstimateNormalsVCM")) {
         connect(a, &QAction::triggered, this, [this]{ if (m_controller) m_controller->runNormalEstimation(NormalEstimationMethod::VCM_ESTIMATION); });
+    }
+}
+
+void MainWindow::ConnectMeshTools() {
+    if (auto a = findChild<QAction*>("actionPostProcessMesh")) {
+        connect(a, &QAction::triggered, this, [this]{
+            if (!m_postProcessParamDialog) {
+                auto *params = new MeshPostprocessParameter(this);
+                m_postProcessParamDialog = new ParameterDialog(params, this);
+                connect(m_postProcessParamDialog, &ParameterDialog::applyClicked, this, [this](BaseInputParameter* p){
+                    if (m_controller) {
+                        std::unique_ptr<BaseInputParameter> snapshot;
+                        if (p) snapshot = p->clone();
+                        m_controller->runPostProcessMesh(std::move(snapshot));
+                    }
+                });
+            }
+            m_postProcessParamDialog->show();
+            m_postProcessParamDialog->raise();
+            m_postProcessParamDialog->activateWindow();
+        });
     }
 }
