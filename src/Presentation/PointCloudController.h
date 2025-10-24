@@ -57,9 +57,13 @@ private slots:
     void onWorkerLog(const QString& m) { emit logMessage(m); }
     void onPointCloudReady(PointCloudPtr cloud) { emit pointCloudUpdated(std::move(cloud)); }
     void onMeshReady(MeshPtr mesh) { emit meshUpdated(std::move(mesh)); }
+    void onTaskFinished() { m_busy = false; }
 
 private:
+    bool ensureIdle(const char* actionName);
+
     QThread m_thread;
     ProcessingWorker* m_worker {nullptr};
     QString m_lastImportPath; // last successfully requested import path
+    bool m_busy {false};
 };

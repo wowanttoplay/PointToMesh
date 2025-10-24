@@ -57,7 +57,15 @@ std::shared_ptr<MeshModel> ProcessingWorker::toMeshModel(const Mesh& mesh) const
     return model;
 }
 
+namespace {
+struct TaskScope {
+    QObject* obj;
+    ~TaskScope() { if (obj) QMetaObject::invokeMethod(obj, "taskFinished", Qt::QueuedConnection); }
+};
+}
+
 void ProcessingWorker::importPointCloud(const QString& filePath) {
+    TaskScope scope{this};
     if (!m_proc) { emit logMessage("Processor not initialized."); return; }
     const std::string path = filePath.toStdString();
     if (!m_proc->loadPointCloud(path)) {
@@ -70,6 +78,7 @@ void ProcessingWorker::importPointCloud(const QString& filePath) {
 }
 
 void ProcessingWorker::reconstructWithParams(MeshGenerationMethod method, BaseInputParameter* params) {
+    TaskScope scope{this};
     // Take ownership in a unique_ptr to ensure deletion in this thread
     std::unique_ptr<BaseInputParameter> guard(params);
     if (!m_proc) { emit logMessage("Processor not initialized."); return; }
@@ -102,6 +111,7 @@ void ProcessingWorker::reconstructWithParams(MeshGenerationMethod method, BaseIn
 }
 
 void ProcessingWorker::exportMeshTo(const QString& filePath, bool withNormals) {
+    TaskScope scope{this};
     if (!m_proc) { emit logMessage("Processor not initialized."); return; }
     const std::string path = filePath.toStdString();
     if (!m_proc->exportMesh(path, withNormals)) {
@@ -112,6 +122,7 @@ void ProcessingWorker::exportMeshTo(const QString& filePath, bool withNormals) {
 }
 
 void ProcessingWorker::estimateNormals(NormalEstimationMethod method) {
+    TaskScope scope{this};
     if (!m_proc) { emit logMessage("Processor not initialized."); return; }
 
     const auto methodName = [method]() -> QString {
@@ -134,6 +145,7 @@ void ProcessingWorker::estimateNormals(NormalEstimationMethod method) {
 }
 
 void ProcessingWorker::postProcessMeshWith(BaseInputParameter* params) {
+    TaskScope scope{this};
     // Takes ownership
     std::unique_ptr<BaseInputParameter> guard(params);
     if (!m_proc) { emit logMessage("Processor not initialized."); return; }
@@ -149,6 +161,7 @@ void ProcessingWorker::postProcessMeshWith(BaseInputParameter* params) {
 }
 
 void ProcessingWorker::downsampleVoxelWith(BaseInputParameter* params) {
+    TaskScope scope{this};
     std::unique_ptr<BaseInputParameter> guard(params);
     if (!m_proc) { emit logMessage("Processor not initialized."); return; }
     const auto before = static_cast<long long>(m_proc->getPointCloud().size());
@@ -166,6 +179,7 @@ void ProcessingWorker::downsampleVoxelWith(BaseInputParameter* params) {
 }
 
 void ProcessingWorker::filterPointCloudAABB(BaseInputParameter* params) {
+    TaskScope scope{this};
     std::unique_ptr<BaseInputParameter> guard(params);
     if (!m_proc) { emit logMessage("Processor not initialized."); return; }
     const auto before = static_cast<long long>(m_proc->getPointCloud().size());
@@ -183,6 +197,7 @@ void ProcessingWorker::filterPointCloudAABB(BaseInputParameter* params) {
 }
 
 void ProcessingWorker::filterPointCloudSphere(BaseInputParameter* params) {
+    TaskScope scope{this};
     std::unique_ptr<BaseInputParameter> guard(params);
     if (!m_proc) { emit logMessage("Processor not initialized."); return; }
     const auto before = static_cast<long long>(m_proc->getPointCloud().size());
@@ -200,6 +215,7 @@ void ProcessingWorker::filterPointCloudSphere(BaseInputParameter* params) {
 }
 
 void ProcessingWorker::filterUniformVolumeSurface(BaseInputParameter* params) {
+    TaskScope scope{this};
     std::unique_ptr<BaseInputParameter> guard(params);
     if (!m_proc) { emit logMessage("Processor not initialized."); return; }
     const auto before = static_cast<long long>(m_proc->getPointCloud().size());
